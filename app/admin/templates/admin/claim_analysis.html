@@ -291,8 +291,8 @@
                             <h5 class="text-muted">Analysis Pending</h5>
                             <p class="text-muted">This claim is waiting for AI analysis</p>
                             {% if current_user.role in ['admin', 'officer'] %}
-                            <form method="POST" action="{{ url_for('api.analyze_claim', claim_id=claim.id) }}">
-                                <button type="submit" class="btn btn-primary">
+                            <form id="analysisForm" method="POST" action="{{ url_for('api.analyze_claim', claim_id=claim.id) }}">
+                                <button type="submit" class="btn btn-primary" id="startAnalysisBtn">
                                     <i class="fas fa-play me-2"></i>Start Analysis
                                 </button>
                             </form>
@@ -495,6 +495,86 @@
         if (riskIndicator) {
             const fraudScore = {{ claim.fraud_score or 0 }};
             riskIndicator.style.left = `${fraudScore}%`;
+        }
+        
+        // Handle analysis form submission
+        const analysisForm = document.getElementById('analysisForm');
+        if (analysisForm) {
+            analysisForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('startAnalysisBtn');
+                const originalBtnContent = submitBtn.innerHTML;
+                
+                // Disable button and show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+                
+                try {
+                    const response = await fetch(analysisForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show success message
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                        alertDiv.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Analysis Complete!</strong> Risk Score: ${result.risk_score}/100
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        
+                        // Insert alert at the top of the page
+                        const container = document.querySelector('.container-fluid');
+                        container.insertBefore(alertDiv, container.firstChild);
+                        
+                        // Reload page after 2 seconds to show results
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        // Show error message
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                        alertDiv.innerHTML = `
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Analysis Failed:</strong> ${result.error || 'Unknown error occurred'}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        
+                        const container = document.querySelector('.container-fluid');
+                        container.insertBefore(alertDiv, container.firstChild);
+                        
+                        // Re-enable button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnContent;
+                    }
+                } catch (error) {
+                    console.error('Error analyzing claim:', error);
+                    
+                    // Show error message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error:</strong> Failed to analyze claim. Please try again.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    
+                    const container = document.querySelector('.container-fluid');
+                    container.insertBefore(alertDiv, container.firstChild);
+                    
+                    // Re-enable button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnContent;
+                }
+            });
         }
     });
 </script>
