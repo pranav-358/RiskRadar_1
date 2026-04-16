@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - RiskRadar{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-3">Get in Touch</h1>
+                <p class="lead text-muted">Have questions? We're here to help!</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Contact Information -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-envelope fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title text-center mb-3">Email Us</h5>
+                            <p class="text-center text-muted mb-3">Send us an email anytime</p>
+                            <p class="text-center">
+                                <a href="mailto:support@riskradar.com" class="text-decoration-none">
+                                    support@riskradar.com
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-phone fa-2x text-success"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title text-center mb-3">Call Us</h5>
+                            <p class="text-center text-muted mb-3">Mon-Fri from 9am to 6pm</p>
+                            <p class="text-center">
+                                <a href="tel:+911234567890" class="text-decoration-none">
+                                    +91 123 456 7890
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-map-marker-alt fa-2x text-info"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title text-center mb-3">Visit Us</h5>
+                            <p class="text-center text-muted mb-3">Come say hello at our office</p>
+                            <p class="text-center">
+                                123 Insurance Street<br>
+                                Mumbai, Maharashtra 400001<br>
+                                India
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-clock fa-2x text-warning"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title text-center mb-3">Business Hours</h5>
+                            <p class="text-center text-muted mb-3">Our support team is available</p>
+                            <p class="text-center">
+                                Monday - Friday: 9:00 AM - 6:00 PM<br>
+                                Saturday: 10:00 AM - 4:00 PM<br>
+                                Sunday: Closed
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="card border-0 shadow-sm mt-5">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4">Send us a Message</h4>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="name" placeholder="John Doe" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Your Email</label>
+                                <input type="email" class="form-control" id="email" placeholder="john@example.com" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" placeholder="How can we help?" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Message</label>
+                                <textarea class="form-control" id="message" rows="5" placeholder="Your message..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Back to Home -->
+            <div class="text-center mt-4">
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

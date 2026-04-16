@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Self-Correction - RiskRadar{% endblock %}
+
+{% block extra_css %}
+<style>
+    .model-card {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .model-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .training-progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    
+    .config-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold">Self-Correction System</h1>
+            <p class="text-muted">AI model retraining and system configuration</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Model Retraining -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-robot me-2"></i>AI Model Retraining
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-semibold">Training Data Statistics</h6>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="bg-light rounded p-3">
+                                    <h3 class="fw-bold text-primary">{{ total_claims }}</h3>
+                                    <small class="text-muted">Total Claims</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="bg-light rounded p-3">
+                                    <h3 class="fw-bold text-success">{{ trained_claims }}</h3>
+                                    <small class="text-muted">With Decisions</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="bg-light rounded p-3">
+                                    <h3 class="fw-bold text-info">{{ (trained_claims / total_claims * 100) | round(1) if total_claims > 0 else 0 }}%</h3>
+                                    <small class="text-muted">Training Coverage</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-semibold">Model Status</h6>
+                        <div class="model-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Document Verification AI</h6>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                            <small class="text-muted">Version 1.2.0 • Last trained: 2 days ago</small>
+                        </div>
+                        
+                        <div class="model-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Behavioral Analysis AI</h6>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                            <small class="text-muted">Version 1.1.5 • Last trained: 1 week ago</small>
+                        </div>
+                        
+                        <div class="model-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Predictive Scoring AI</h6>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                            <small class="text-muted">Version 1.3.2 • Last trained: 3 days ago</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button id="retrainBtn" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sync-alt me-2"></i>Retrain All Models
+                        </button>
+                        <div id="retrainProgress" class="mt-3" style="display: none;">
+                            <div class="progress training-progress mb-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="retrainStatus">Initializing...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Configuration -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>System Configuration
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.update_config') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="config-card">
+                            <h6 class="fw-semibold mb-3">Risk Thresholds</h6>
+                            
+                            <div class="mb-3">
+                                {{ form.fraud_threshold_high.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.fraud_threshold_high(class="form-control", type="number", min="0", max="100", step="1") }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Claims scoring above this threshold are considered high risk</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.fraud_threshold_medium.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.fraud_threshold_medium(class="form-control", type="number", min="0", max="100", step="1") }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Claims scoring above this threshold are considered medium risk</div>
+                            </div>
+                        </div>
+
+                        <div class="config-card">
+                            <h6 class="fw-semibold mb-3">System Settings</h6>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    {{ form.auto_assign_officers(class="form-check-input") }}
+                                    {{ form.auto_assign_officers.label(class="form-check-label") }}
+                                </div>
+                                <div class="form-text">Automatically assign new claims to available officers</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.max_file_size.label(class="form-label") }}
+                                <div class="input-group">
+                                    {{ form.max_file_size(class="form-control", type="number", min="1", max="50") }}
+                                    <span class="input-group-text">MB</span>
+                                </div>
+                                <div class="form-text">Maximum file size for document uploads</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Configuration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>System Health
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="bg-light rounded p-3">
+                                <i class="fas fa-database fa-2x text-success mb-2"></i>
+                                <h6 class="fw-bold mb-0">Database</h6>
+                                <small class="text-success">Online</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light rounded p-3">
+                                <i class="fas fa-brain fa-2x text-success mb-2"></i>
+                                <h6 class="fw-bold mb-0">AI Models</h6>
+                                <small class="text-success">Active</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light rounded p-3">
+                                <i class="fas fa-file-upload fa-2x text-success mb-2"></i>
+                                <h6 class="fw-bold mb-0">File System</h6>
+                                <small class="text-success">Healthy</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <button id="healthCheckBtn" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-sync-alt me-2"></i>Run Health Check
+                        </button>
+                        <div id="healthCheckResult" class="mt-2" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Model retraining
+    const retrainBtn = document.getElementById('retrainBtn');
+    const retrainProgress = document.getElementById('retrainProgress');
+    const retrainStatus = document.getElementById('retrainStatus');
+    const progressBar = document.querySelector('.progress-bar');
+    
+    retrainBtn.addEventListener('click', function() {
+        retrainBtn.disabled = true;
+        retrainProgress.style.display = 'block';
+        retrainStatus.textContent = 'Initializing retraining process...';
+        
+        // Simulate progress (in real implementation, this would use WebSockets or polling)
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress <= 25) {
+                retrainStatus.textContent = 'Preparing training data...';
+            } else if (progress <= 50) {
+                retrainStatus.textContent = 'Training document verification model...';
+            } else if (progress <= 75) {
+                retrainStatus.textContent = 'Training behavioral analysis model...';
+            } else if (progress <= 95) {
+                retrainStatus.textContent = 'Training predictive scoring model...';
+            } else {
+                retrainStatus.textContent = 'Finalizing and deploying models...';
+            }
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    retrainStatus.textContent = 'Retraining completed successfully!';
+                    retrainBtn.disabled = false;
+                    // Show success message
+                    showToast('Models retrained successfully!', 'success');
+                }, 1000);
+            }
+        }, 200);
+    });
+    
+    // Health check
+    const healthCheckBtn = document.getElementById('healthCheckBtn');
+    const healthCheckResult = document.getElementById('healthCheckResult');
+    
+    healthCheckBtn.addEventListener('click', function() {
+        healthCheckBtn.disabled = true;
+        healthCheckResult.style.display = 'block';
+        healthCheckResult.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div> Running health check...</div>';
+        
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'healthy') {
+                    healthCheckResult.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            System is healthy! All components are functioning properly.
+                        </div>
+                    `;
+                } else {
+                    healthCheckResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            System issues detected: ${data.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+                healthCheckBtn.disabled = false;
+            })
+            .catch(error => {
+                healthCheckResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Health check failed: ${error.message}
+                    </div>
+                `;
+                healthCheckBtn.disabled = false;
+            });
+    });
+    
+    function showToast(message, type) {
+        // Simple toast notification implementation
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.top = '20px';
+        toast.style.right = '20px';
+        toast.style.zIndex = '1060';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

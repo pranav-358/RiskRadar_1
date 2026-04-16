@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Login - RiskRadar AI{% endblock %}
+
+{% block content %}
+<style>
+    /* Full height wrapper to vertically center the form */
+    .login-wrapper {
+        position: relative;
+        min-height: calc(100vh - 150px); /* Adjusts for navbar */
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        overflow: hidden;
+        background-color: #f8faff;
+    }
+
+    /* Abstract Ambient Background Elements */
+    .bg-glow-1 {
+        position: absolute;
+        top: -10%;
+        left: -10%;
+        width: 50vw;
+        height: 50vw;
+        background: radial-gradient(circle, rgba(13,110,253,0.08) 0%, rgba(13,110,253,0) 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .bg-glow-2 {
+        position: absolute;
+        bottom: -20%;
+        right: -10%;
+        width: 60vw;
+        height: 60vw;
+        background: radial-gradient(circle, rgba(13,202,240,0.08) 0%, rgba(13,202,240,0) 70%);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Glassmorphism Card Styling */
+    .login-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        z-index: 1;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .login-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* Floating Input Customization */
+    .form-floating > .form-control {
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .form-floating > .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        background-color: #ffffff;
+    }
+
+    /* Transparent background for floating label fix */
+    .form-floating > .form-control:focus ~ label::after,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label::after {
+        background-color: transparent !important;
+    }
+
+    /* Animated Gradient Button */
+    .btn-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        background-size: 200% auto;
+        border: none;
+        transition: all 0.4s ease;
+    }
+
+    .btn-gradient:hover {
+        background-position: right center;
+        box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* Icon Header */
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+        box-shadow: inset 0 0 0 1px rgba(13, 110, 253, 0.2);
+    }
+
+    .letter-spacing-1 { letter-spacing: 1px; }
+</style>
+
+<div class="login-wrapper">
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <div class="container position-relative z-1">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-5 col-xl-4">
+                
+                <div class="card border-0 rounded-4 login-card" data-aos="fade-up" data-aos-duration="800">
+                    <div class="card-body p-4 p-sm-5">
+                        
+                        <div class="text-center mb-4">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-fingerprint fa-2x text-primary"></i>
+                            </div>
+                            <h2 class="fw-bolder text-dark mb-1">Welcome Back</h2>
+                            <p class="text-secondary small">Authenticate to access the RiskRadar portal</p>
+                        </div>
+                        
+                        <form action="" method="POST">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="form-floating mb-3">
+                                {{ form.username(class="form-control", id="username", placeholder="Username", autocomplete="username") }}
+                                <label for="username" class="text-muted"><i class="fas fa-user-circle me-2"></i>Username</label>
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.username.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                {{ form.password(class="form-control", id="password", placeholder="Password", autocomplete="current-password") }}
+                                <label for="password" class="text-muted"><i class="fas fa-lock me-2"></i>Password</label>
+                                {% if form.password.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.password.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4 px-1">
+                                <div class="form-check">
+                                    {{ form.remember_me(class="form-check-input border-secondary", id="rememberMe") }}
+                                    <label class="form-check-label text-secondary small user-select-none" for="rememberMe">Remember me</label>
+                                </div>
+                                <a href="#" class="text-primary text-decoration-none small fw-semibold">Forgot password?</a>
+                            </div>
+                            
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-gradient btn-lg text-white fw-bold rounded-pill d-flex justify-content-center align-items-center gap-2">
+                                    Secure Login <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="position-relative text-center mb-4">
+                            <hr class="text-secondary opacity-25">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small text-uppercase letter-spacing-1 fw-medium" style="border-radius: 8px;">Network</span>
+                        </div>
+                        
+                        <div class="text-center bg-light rounded-4 p-3 border border-secondary border-opacity-10 transition-all hover-bg-white">
+                            <p class="mb-0 text-secondary small">
+                                Don't have system access? 
+                                <a href="{{ url_for('main.register') }}" class="text-primary fw-bold text-decoration-none ms-1">Request Account</a>
+                            </p>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4" data-aos="fade-in" data-aos-delay="400">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm">
+                        <i class="fas fa-shield-check me-1"></i> AES-256 Encrypted Connection
+                    </span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

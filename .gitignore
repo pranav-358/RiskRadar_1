@@ -1,0 +1,227 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Flask
+instance/
+.webassets-cache
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.flaskenv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+pytestdebug.log
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Uploaded Files (Don't commit user uploads)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# Temporary Files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# OS Files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Documentation (Optional - uncomment if you don't want to commit these)
+# *.md
+# !README.md
+
+# Training Data (Optional - uncomment if models are too large)
+# training_data/models/*.joblib
+# training_data/models/*.pkl
+
+# Backup Files
+*.bak
+*.backup
+*~
+
+# Compiled Files
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / Packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff (if you add Django later)
+*.log
+local_settings.py
+
+# Scrapy stuff (if you add Scrapy later)
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+instance/*.db
+
+# Secrets
+secrets.json
+credentials.json
+*.pem
+*.key
+
+# Node modules (if you add Node.js later)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Kiro AI Assistant
+.kiro/
+
+# Demo/Test Files (Optional)
+test_*.py
+debug_*.py
+demo_*.py
+quick_*.py
+analyze_*.py
+check_*.py
+diagnose_*.py
+final_*.py
+
+# Documentation Files (Optional - keep for hackathon)
+# BUGS_FIXED_SUMMARY.md
+# DEMO_*.md
+# FINAL_*.md
+# HACKATHON_*.md
+# READY_FOR_DEMO.md
+
+# Misc
+.cache/
+*.swp
+*.swo
+*~

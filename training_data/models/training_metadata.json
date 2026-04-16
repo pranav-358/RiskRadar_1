@@ -1,0 +1,33 @@
+{
+  "training_date": "2026-04-16T12:05:47.733325",
+  "n_samples": 5000,
+  "n_train": 4000,
+  "n_test": 1000,
+  "fraud_percentage": 50.0,
+  "models": {
+    "random_forest": {
+      "train_accuracy": 1.0,
+      "test_accuracy": 1.0,
+      "auc_roc": 1.0
+    },
+    "gradient_boosting": {
+      "train_accuracy": 1.0,
+      "test_accuracy": 1.0,
+      "auc_roc": 1.0
+    }
+  },
+  "feature_names": [
+    "amount",
+    "claim_health",
+    "claim_auto",
+    "claim_property",
+    "claim_life",
+    "policy_comprehensive",
+    "policy_basic",
+    "policy_premium",
+    "doc_authenticity",
+    "num_documents",
+    "time_diff",
+    "risk_score"
+  ]
+}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Claims Management - RiskRadar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold">Claims Management</h1>
+            <p class="text-muted">Review and manage all insurance claims</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+                        <option value="under_review" {% if status_filter == 'under_review' %}selected{% endif %}>Under Review</option>
+                        <option value="processed" {% if status_filter == 'processed' %}selected{% endif %}>Processed</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Risk Level</label>
+                    <select name="risk" class="form-select">
+                        <option value="all" {% if risk_filter == 'all' %}selected{% endif %}>All Risk Levels</option>
+                        <option value="high" {% if risk_filter == 'high' %}selected{% endif %}>High Risk (75+)</option>
+                        <option value="medium" {% if risk_filter == 'medium' %}selected{% endif %}>Medium Risk (50-74)</option>
+                        <option value="low" {% if risk_filter == 'low' %}selected{% endif %}>Low Risk (0-49)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search claims..." value="{{ search_query }}">
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Claims Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if claims.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Claimant</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Risk Score</th>
+                                <th>Assigned To</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims.items %}
+                            <tr>
+                                <td><strong>#{{ claim.id }}</strong></td>
+                                <td>
+                                    {% if claim.claimant %}
+                                        {{ claim.claimant.first_name }} {{ claim.claimant.last_name }}
+                                    {% else %}
+                                        <span class="text-muted">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ claim.claim_type|title }}</span>
+                                </td>
+                                <td>{{ format_currency(claim.amount) }}</td>
+                                <td>{{ claim.submission_date.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    <span class="badge status-badge" data-status="{{ claim.status }}">
+                                        {{ claim.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if claim.fraud_score is not none %}
+                                        {% set risk = format_risk_score(claim.fraud_score) %}
+                                        <span class="badge risk-badge" data-risk-score="{{ claim.fraud_score }}">
+                                            {{ risk.score }} - {{ risk.text }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Not Analyzed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if claim.assigned_officer %}
+                                        {{ claim.assigned_officer.first_name }} {{ claim.assigned_officer.last_name }}
+                                    {% else %}
+                                        <span class="text-muted">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.claim_analysis', claim_id=claim.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-search"></i> Review
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Claims pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if claims.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.claims_list', page=claims.prev_num, status=status_filter, risk=risk_filter, search=search_query) }}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Previous</span>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in claims.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == claims.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('admin.claims_list', page=page_num, status=status_filter, risk=risk_filter, search=search_query) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if claims.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.claims_list', page=claims.next_num, status=status_filter, risk=risk_filter, search=search_query) }}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Next</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No claims found</h5>
+                    <p class="text-muted">No claims match your current filters</p>
+                    <a href="{{ url_for('admin.claims_list') }}" class="btn btn-primary mt-2">
+                        Clear Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateRiskScoreColors();
+        updateStatusBadges();
+    });
+</script>
+{% endblock %}

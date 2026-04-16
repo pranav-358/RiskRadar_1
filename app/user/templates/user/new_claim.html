@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+
+{% block title %}Submit New Claim - RiskRadar{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-title {
+        font-weight: 600;
+        color: #0d6efd;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .file-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        background: #f8f9fa;
+    }
+    
+    .file-upload-area:hover {
+        border-color: #0d6efd;
+        background: #f0f7ff;
+    }
+    
+    .file-upload-area.dragover {
+        border-color: #0d6efd;
+        background: #e3f2fd;
+    }
+    
+    .upload-preview {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .upload-item {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .upload-item:last-child {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold">Submit New Insurance Claim</h1>
+                    <p class="text-muted">Complete the form below to submit your claim for processing</p>
+                </div>
+                <a href="{{ url_for('user.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-info"></i>
+                            </div>
+                            <div class="mt-2 small">Claim Details</div>
+                        </div>
+                        <div class="flex-grow-1 mx-3">
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar" role="progressbar" style="width: 33%;"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-file"></i>
+                            </div>
+                            <div class="mt-2 small">Documents</div>
+                        </div>
+                        <div class="flex-grow-1 mx-3">
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar" role="progressbar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="mt-2 small">Review</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('user.new_claim') }}" enctype="multipart/form-data" novalidate>
+                {{ form.hidden_tag() }}
+
+                <!-- Claim Information Section -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle me-2"></i>Claim Information
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.policy_number.label(class="form-label") }}
+                            {{ form.policy_number(class="form-control", id="policyNumber", placeholder="Enter your policy number (e.g., POL123456)") }}
+                            <div id="policyError" class="text-danger" style="display: none;">
+                                <small>Invalid policy number format. Use format: POL followed by 6-10 digits</small>
+                            </div>
+                            <div id="policySuccess" class="text-success" style="display: none;">
+                                <small><i class="fas fa-check-circle"></i> Valid policy number</small>
+                            </div>
+                            {% if form.policy_number.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.policy_number.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.policy_type.label(class="form-label") }}
+                            {{ form.policy_type(class="form-select") }}
+                            {% if form.policy_type.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.policy_type.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.claim_type.label(class="form-label") }}
+                            {{ form.claim_type(class="form-select") }}
+                            {% if form.claim_type.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.claim_type.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.amount.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="text" 
+                                       name="amount" 
+                                       id="amountField" 
+                                       class="form-control" 
+                                       placeholder="Enter amount (e.g., 50000)"
+                                       value="{{ form.amount.data if form.amount.data else '' }}"
+                                       autocomplete="off"
+                                       required>
+                            </div>
+                            <div class="form-text">Amount will be formatted as Indian currency (e.g., 1,00,000)</div>
+                            {% if form.amount.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.amount.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.incident_date.label(class="form-label") }}
+                            {{ form.incident_date(class="form-control", type="date") }}
+                            {% if form.incident_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.incident_date.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.incident_location.label(class="form-label") }}
+                            {{ form.incident_location(class="form-control", placeholder="Enter incident location") }}
+                            {% if form.incident_location.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.incident_location.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=4, placeholder="Describe the incident in detail...") }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Please provide a detailed description of what happened.</div>
+                    </div>
+                </div>
+
+                <!-- Document Upload Section -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-upload me-2"></i>Supporting Documents
+                    </h4>
+                    
+                    <div class="mb-4">
+                        <div class="file-upload-area" id="documentUploadArea">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Drag & Drop Files Here</h5>
+                            <p class="text-muted">or click to browse your files</p>
+                            {{ form.file(class="d-none", id="fileInput", multiple=true) }}
+                            <button type="button" class="btn btn-outline-primary mt-2" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open me-2"></i>Select Files
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.document_type.label(class="form-label") }}
+                        {{ form.document_type(class="form-select") }}
+                        {% if form.document_type.errors %}
+                            <div class="text-danger">
+                                {% for error in form.document_type.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Upload Preview -->
+                    <div id="uploadPreview" class="upload-preview mb-3" style="display: none;">
+                        <h6 class="mb-3">Selected Files:</h6>
+                        <div id="fileList"></div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Supported files:</strong> PDF, JPG, PNG, GIF (Max 16MB per file)
+                    </div>
+                </div>
+
+                <!-- Submission Section -->
+                <div class="form-section">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="section-title mb-0">Review & Submit</h4>
+                            <p class="text-muted mb-0">Review your information before submitting</p>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Claim
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('documentUploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const uploadPreview = document.getElementById('uploadPreview');
+    const fileList = document.getElementById('fileList');
+    
+    let uploadedFiles = [];
+    
+    // ========== POLICY NUMBER VALIDATION ==========
+    const policyInput = document.getElementById('policyNumber');
+    const policyError = document.getElementById('policyError');
+    const policySuccess = document.getElementById('policySuccess');
+    
+    if (policyInput) {
+        policyInput.addEventListener('blur', function() {
+            validatePolicyNumber(this.value);
+        });
+        
+        policyInput.addEventListener('input', function() {
+            // Hide messages while typing
+            policyError.style.display = 'none';
+            policySuccess.style.display = 'none';
+        });
+    }
+    
+    function validatePolicyNumber(value) {
+        if (!value) return false;
+        
+        // Indian policy number format: POL followed by 6-10 digits
+        // Examples: POL123456, POL1234567890
+        const policyPattern = /^POL\d{6,10}$/i;
+        
+        if (policyPattern.test(value)) {
+            policyError.style.display = 'none';
+            policySuccess.style.display = 'block';
+            return true;
+        } else {
+            policyError.style.display = 'block';
+            policySuccess.style.display = 'none';
+            return false;
+        }
+    }
+    
+    // ========== AMOUNT FIELD FIX ==========
+    const amountInput = document.getElementById('amountField');
+    let rawAmount = ''; // Store the raw numeric value
+    let isFormatting = false; // Flag to prevent recursive formatting
+    
+    if (amountInput) {
+        // Load initial value if exists
+        const initialValue = amountInput.value.replace(/[^\d]/g, '');
+        if (initialValue) {
+            rawAmount = initialValue;
+            amountInput.value = formatIndianCurrency(rawAmount);
+        }
+        
+        // Handle input - only allow digits
+        amountInput.addEventListener('input', function(e) {
+            if (isFormatting) return; // Prevent recursive calls
+            
+            isFormatting = true;
+            
+            // Get cursor position before formatting
+            const cursorPos = this.selectionStart;
+            const oldValue = this.value;
+            const oldLength = oldValue.length;
+            
+            // Extract only digits
+            const value = this.value.replace(/[^\d]/g, '');
+            
+            // Update raw amount
+            rawAmount = value;
+            
+            // Format and display
+            if (value) {
+                const formatted = formatIndianCurrency(value);
+                this.value = formatted;
+                
+                // Restore cursor position (accounting for added commas)
+                const newLength = formatted.length;
+                const diff = newLength - oldLength;
+                this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+            } else {
+                this.value = '';
+            }
+            
+            isFormatting = false;
+        });
+        
+        // Prevent non-numeric input on keypress
+        amountInput.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[0-9]/.test(char) && e.which !== 8 && e.which !== 0) {
+                e.preventDefault();
+            }
+        });
+        
+        // Prevent paste of non-numeric content
+        amountInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const numericOnly = pastedText.replace(/[^\d]/g, '');
+            if (numericOnly) {
+                rawAmount = numericOnly;
+                this.value = formatIndianCurrency(numericOnly);
+            }
+        });
+        
+        // On blur, ensure it's formatted
+        amountInput.addEventListener('blur', function() {
+            if (rawAmount) {
+                this.value = formatIndianCurrency(rawAmount);
+            }
+        });
+    }
+    
+    // Indian currency formatter (1,00,000 style)
+    function formatIndianCurrency(value) {
+        if (!value) return '';
+        
+        let str = value.toString();
+        let result = '';
+        let count = 0;
+        
+        // Process from right to left
+        for (let i = str.length - 1; i >= 0; i--) {
+            if (count === 3 || (count > 3 && (count - 3) % 2 === 0)) {
+                result = ',' + result;
+            }
+            result = str[i] + result;
+            count++;
+        }
+        
+        return result;
+    }
+    
+    // ========== FORM SUBMISSION ==========
+    const claimForm = document.querySelector('form');
+    if (claimForm) {
+        claimForm.addEventListener('submit', function(e) {
+            // Validate policy number
+            if (policyInput && !validatePolicyNumber(policyInput.value)) {
+                e.preventDefault();
+                policyInput.focus();
+                alert('Please enter a valid policy number (Format: POL followed by 6-10 digits)');
+                return false;
+            }
+            
+            // Convert amount to plain number before submission
+            if (amountInput && rawAmount) {
+                amountInput.value = rawAmount;
+            }
+            
+            return true;
+        });
+    }
+    
+    // ========== FILE UPLOAD ==========
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        uploadArea.classList.add('dragover');
+    }
+    
+    function unhighlight() {
+        uploadArea.classList.remove('dragover');
+    }
+    
+    uploadArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+    
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+    
+    function handleFiles(files) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            if (file.size > 16 * 1024 * 1024) {
+                alert(`File "${file.name}" is too large. Maximum size is 16MB.`);
+                continue;
+            }
+            
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+            if (!validTypes.includes(file.type)) {
+                alert(`File "${file.name}" is not a supported type.`);
+                continue;
+            }
+            
+            uploadedFiles.push(file);
+            addFileToList(file);
+        }
+        
+        const dataTransfer = new DataTransfer();
+        uploadedFiles.forEach(file => dataTransfer.items.add(file));
+        fileInput.files = dataTransfer.files;
+        
+        if (uploadedFiles.length > 0) {
+            uploadPreview.style.display = 'block';
+        }
+    }
+    
+    function addFileToList(file) {
+        const item = document.createElement('div');
+        item.className = 'upload-item';
+        item.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-file ${file.type.includes('image') ? 'fa-image' : 'fa-file-pdf'} me-2"></i>
+                    <span>${file.name}</span>
+                    <small class="text-muted">(${formatFileSize(file.size)})</small>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(this, '${file.name}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        fileList.appendChild(item);
+    }
+    
+    window.removeFile = function(button, fileName) {
+        const item = button.closest('.upload-item');
+        item.remove();
+        
+        uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+        
+        const dataTransfer = new DataTransfer();
+        uploadedFiles.forEach(file => dataTransfer.items.add(file));
+        fileInput.files = dataTransfer.files;
+        
+        if (uploadedFiles.length === 0) {
+            uploadPreview.style.display = 'none';
+        }
+    };
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
+{% endblock %}

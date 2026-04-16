@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Claim Details - RiskRadar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold">Claim Details #{{ claim.id }}</h1>
+            <p class="text-muted">Detailed information about your insurance claim</p>
+        </div>
+        <a href="{{ url_for('user.view_claims') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Claims
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Claim Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Claim Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Claim Type</label>
+                                <p class="mb-0">{{ claim.claim_type|title }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Policy Number</label>
+                                <p class="mb-0">{{ claim.policy_number }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Claim Amount</label>
+                                <p class="mb-0">{{ format_currency(claim.amount) }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Incident Date</label>
+                                <p class="mb-0">{{ claim.incident_date.strftime('%d %b %Y') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Incident Location</label>
+                                <p class="mb-0">{{ claim.incident_location }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Submission Date</label>
+                                <p class="mb-0">{{ claim.submission_date.strftime('%d %b %Y') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <p class="mb-0">{{ claim.description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Section -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file me-2"></i>Supporting Documents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Document Type</th>
+                                        <th>File Name</th>
+                                        <th>Upload Date</th>
+                                        <th>Authenticity</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for document in documents %}
+                                    <tr>
+                                        <td>{{ document.document_type|title }}</td>
+                                        <td>{{ document.original_filename }}</td>
+                                        <td>{{ document.upload_date.strftime('%d %b %Y') }}</td>
+                                        <td>
+                                            {% if document.authenticity_score is not none %}
+                                                {% if document.authenticity_score >= 80 %}
+                                                    <span class="badge bg-success">Authentic</span>
+                                                {% elif document.authenticity_score >= 60 %}
+                                                    <span class="badge bg-warning">Suspicious</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Tampered</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Analyzed</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('user.view_document', document_id=document.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-file fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No documents uploaded for this claim</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Status & Analysis Sidebar -->
+        <div class="col-lg-4">
+            <!-- Status Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2"></i>Claim Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <span class="badge status-badge fs-6" data-status="{{ claim.status }}">
+                            {{ claim.status|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+                    
+                    {% if claim.decision %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Decision</label>
+                            <p class="mb-0">
+                                <span class="badge {% if claim.decision == 'approved' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ claim.decision|title }}
+                                </span>
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if claim.decision_reason %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Decision Reason</label>
+                            <p class="mb-0">{{ claim.decision_reason }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if claim.assigned_officer %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Assigned Officer</label>
+                            <p class="mb-0">{{ claim.assigned_officer.first_name }} {{ claim.assigned_officer.last_name }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Risk Analysis Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Risk Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if claim.fraud_score is not none %}
+                        <div class="text-center mb-3">
+                            {% set risk = format_risk_score(claim.fraud_score) %}
+                            <div class="risk-score-display mb-2">
+                                <span class="display-4 fw-bold text-{{ risk.color }}">{{ risk.score }}</span>
+                                <span class="text-muted">/100</span>
+                            </div>
+                            <span class="badge risk-badge fs-6" data-risk-score="{{ claim.fraud_score }}">
+                                {{ risk.text }} Risk
+                            </span>
+                        </div>
+                        
+                        {% if analysis_results and analysis_results.explainable_ai %}
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">Key Factors:</label>
+                                <ul class="list-unstyled">
+                                    {% for factor in analysis_results.explainable_ai.risk_factors[:3] %}
+                                    <li class="mb-1">
+                                        <i class="fas fa-circle text-{{ factor.severity }} me-2 small"></i>
+                                        {{ factor.description }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Analysis in progress</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline Card -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item {% if claim.submission_date %}active{% endif %}">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Claim Submitted</h6>
+                                <small class="text-muted">{{ claim.submission_date.strftime('%d %b %Y %H:%M') if claim.submission_date }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if claim.analysis_date %}active{% endif %}">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Analysis Completed</h6>
+                                <small class="text-muted">{{ claim.analysis_date.strftime('%d %b %Y %H:%M') if claim.analysis_date }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item {% if claim.decision_date %}active{% endif %}">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0">Decision Made</h6>
+                                <small class="text-muted">{{ claim.decision_date.strftime('%d %b %Y %H:%M') if claim.decision_date }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .risk-score-display {
+        font-size: 2.5rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+    }
+    
+    .timeline-point {
+        position: absolute;
+        left: -2rem;
+        top: 0.25rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: #dee2e6;
+    }
+    
+    .timeline-item.active .timeline-point {
+        background-color: #0d6efd;
+    }
+    
+    .timeline-content {
+        margin-left: 0.5rem;
+    }
+    
+    .timeline-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 1.25rem;
+        bottom: 0;
+        width: 2px;
+        background-color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateRiskScoreColors();
+        updateStatusBadges();
+    });
+</script>
+{% endblock %}

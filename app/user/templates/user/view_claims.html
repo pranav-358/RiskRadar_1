@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}My Claims - RiskRadar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold">My Insurance Claims</h1>
+            <p class="text-muted">View and manage all your submitted claims</p>
+        </div>
+        <a href="{{ url_for('user.new_claim') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Claim
+        </a>
+    </div>
+
+    <!-- Claims Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if claims.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Risk Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims.items %}
+                            <tr>
+                                <td><strong>#{{ claim.id }}</strong></td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ claim.claim_type|title }}</span>
+                                </td>
+                                <td>{{ format_currency(claim.amount) }}</td>
+                                <td>{{ claim.submission_date.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    <span class="badge status-badge" data-status="{{ claim.status }}">
+                                        {{ claim.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if claim.fraud_score is not none %}
+                                        {% set risk = format_risk_score(claim.fraud_score) %}
+                                        <span class="badge risk-badge" data-risk-score="{{ claim.fraud_score }}">
+                                            {{ risk.score }} - {{ risk.text }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Not Analyzed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('user.claim_details', claim_id=claim.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Claims pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if claims.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('user.view_claims', page=claims.prev_num) }}">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Previous</span>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in claims.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == claims.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('user.view_claims', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if claims.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('user.view_claims', page=claims.next_num) }}">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Next</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No claims found</h5>
+                    <p class="text-muted">You haven't submitted any insurance claims yet</p>
+                    <a href="{{ url_for('user.new_claim') }}" class="btn btn-primary mt-2">
+                        Submit Your First Claim
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateRiskScoreColors();
+        updateStatusBadges();
+    });
+</script>
+{% endblock %}

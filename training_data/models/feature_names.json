@@ -1,0 +1,14 @@
+[
+  "amount",
+  "claim_health",
+  "claim_auto",
+  "claim_property",
+  "claim_life",
+  "policy_comprehensive",
+  "policy_basic",
+  "policy_premium",
+  "doc_authenticity",
+  "num_documents",
+  "time_diff",
+  "risk_score"
+]

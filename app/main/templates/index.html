@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}RiskRadar - AI-Powered Insurance Fraud Detection{% endblock %}
+
+{% block content %}
+<section class="hero-section py-5 position-relative overflow-hidden">
+    <div class="position-absolute top-0 start-0 w-100 h-100 hero-bg-shape opacity-50 pointer-events-none"></div>
+    
+    <div class="container position-relative z-1">
+        <div class="row align-items-center min-vh-75 pt-5">
+            <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right" data-aos-duration="1000">
+                <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-4 fw-medium border border-primary border-opacity-25 shadow-sm">
+                    <i class="fas fa-sparkles me-2"></i>Next-Gen AI Security
+                </div>
+                <h1 class="display-4 fw-bolder text-dark mb-4 lh-sm">
+                    Intelligent <span class="text-primary position-relative d-inline-block">
+                        Fraud Detection
+                        <svg class="position-absolute w-100 bottom-0 start-0 text-primary opacity-50" style="height: 12px; transform: translateY(5px);" viewBox="0 0 200 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.00018 6.5C38.0002 2.5 125.5 -1.49999 198 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                    </span><br> for Modern Insurance
+                </h1>
+                <p class="lead text-secondary mb-5 pe-lg-4 fs-5">Leverage cutting-edge AI technology to detect, prevent, and analyze insurance fraud in real-time. Protect your business while enhancing customer trust.</p>
+                
+                <div class="d-flex flex-wrap gap-3 mb-5">
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-hover fw-semibold text-white d-flex align-items-center">
+                            <i class="fas fa-rocket me-2 fs-5"></i>Get Started Free
+                        </a>
+                        <a href="{{ url_for('main.login') }}" class="btn btn-outline-dark btn-lg px-5 py-3 rounded-pill fw-semibold d-flex align-items-center hover-lift">
+                            <i class="fas fa-sign-in-alt me-2 text-primary fs-5"></i>Login
+                        </a>
+                    {% else %}
+                        {% if current_user.role == 'user' %}
+                            <a href="{{ url_for('user.new_claim') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-hover fw-semibold text-white d-flex align-items-center">
+                                <i class="fas fa-plus-circle me-2 fs-5"></i>Submit New Claim
+                            </a>
+                        {% endif %}
+                        <a href="{% if current_user.role == 'user' %}{{ url_for('user.dashboard') }}{% else %}{{ url_for('admin.dashboard') }}{% endif %}" class="btn btn-outline-dark btn-lg px-5 py-3 rounded-pill fw-semibold d-flex align-items-center hover-lift">
+                            <i class="fas fa-tachometer-alt me-2 text-primary fs-5"></i>View Dashboard
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="row g-4 border-top pt-4">
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-square bg-primary bg-opacity-10 text-primary rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-shield-check fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-0 text-dark">99.8%</h4>
+                                <small class="text-muted fw-medium">Accuracy</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto d-none d-sm-block">
+                        <div class="vr h-100 text-muted opacity-25"></div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-square bg-warning bg-opacity-10 text-warning rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-bolt fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-0 text-dark">&lt;5 sec</h4>
+                                <small class="text-muted fw-medium">Processing</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 text-center" data-aos="zoom-in-up" data-aos-duration="1200" data-aos-delay="200">
+                <div class="hero-visual position-relative mx-auto" style="max-width: 450px;">
+                    <div class="bg-white rounded-circle shadow-lg d-flex align-items-center justify-content-center position-relative z-2 mx-auto" style="width: 250px; height: 250px;">
+                        <div class="position-absolute w-100 h-100 rounded-circle border border-primary border-opacity-25 pulse-ring-1"></div>
+                        <div class="position-absolute w-100 h-100 rounded-circle border border-info border-opacity-25 pulse-ring-2"></div>
+                        <i class="fas fa-shield-alt display-1 text-primary-gradient bg-clip-text"></i>
+                    </div>
+                    
+                    <div class="floating-icon shadow-sm glass-card" style="top: -10px; left: 10px; animation-delay: 0s;">
+                        <i class="fas fa-file-invoice-dollar fs-3 text-success"></i>
+                        <span class="d-block small fw-bold mt-1">Claim Scanned</span>
+                    </div>
+                    <div class="floating-icon shadow-sm glass-card" style="top: 50%; right: -30px; animation-delay: 1.5s;">
+                        <i class="fas fa-project-diagram fs-3 text-warning"></i>
+                        <span class="d-block small fw-bold mt-1">Network Check</span>
+                    </div>
+                    <div class="floating-icon shadow-sm glass-card" style="bottom: 10px; left: 30px; animation-delay: 3s;">
+                        <i class="fas fa-fingerprint fs-3 text-info"></i>
+                        <span class="d-block small fw-bold mt-1">ID Verified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-6 bg-light position-relative z-1">
+    <div class="container py-5">
+        <div class="text-center mb-5 pb-3" data-aos="fade-up">
+            <h2 class="fw-bolder text-dark mb-3">Comprehensive Defense Architecture</h2>
+            <p class="text-secondary lead mx-auto" style="max-width: 600px;">Our multi-layered AI approach dissects every claim from multiple angles to ensure maximum protection.</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4 overflow-hidden position-relative group">
+                    <div class="card-top-line bg-primary"></div>
+                    <div class="card-body p-4 p-xl-5 text-center">
+                        <div class="feature-icon bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center transition-transform">
+                            <i class="fas fa-file-contract fa-2x"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark mb-3">Document Auth</h5>
+                        <p class="card-text text-secondary small mb-4">AI-powered OCR and EXIF authenticity checks with deep tamper detection algorithms.</p>
+                        <div class="mt-auto d-flex flex-wrap justify-content-center gap-2">
+                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2">EasyOCR</span>
+                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-3 py-2">NLP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4 overflow-hidden position-relative">
+                    <div class="card-top-line bg-success"></div>
+                    <div class="card-body p-4 p-xl-5 text-center">
+                        <div class="feature-icon bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center transition-transform">
+                            <i class="fas fa-user-clock fa-2x"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark mb-3">Behavioral AI</h5>
+                        <p class="card-text text-secondary small mb-4">Machine learning identifies anomalous patterns in claim frequency and financial amounts.</p>
+                        <div class="mt-auto d-flex flex-wrap justify-content-center gap-2">
+                            <span class="badge bg-light text-success border border-success border-opacity-25 rounded-pill px-3 py-2">Isolation Forest</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4 overflow-hidden position-relative">
+                    <div class="card-top-line bg-warning"></div>
+                    <div class="card-body p-4 p-xl-5 text-center">
+                        <div class="feature-icon bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center transition-transform">
+                            <i class="fas fa-project-diagram fa-2x"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark mb-3">Hidden Links</h5>
+                        <p class="card-text text-secondary small mb-4">Graph neural network analysis maps hidden relationships to detect organized fraud rings.</p>
+                        <div class="mt-auto d-flex flex-wrap justify-content-center gap-2">
+                            <span class="badge bg-light text-warning border border-warning border-opacity-25 rounded-pill px-3 py-2 text-dark">Graph Analysis</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                <div class="card h-100 border-0 shadow-sm feature-card bg-white rounded-4 overflow-hidden position-relative">
+                    <div class="card-top-line bg-info"></div>
+                    <div class="card-body p-4 p-xl-5 text-center">
+                        <div class="feature-icon bg-info bg-opacity-10 text-info rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center transition-transform">
+                            <i class="fas fa-brain fa-2x"></i>
+                        </div>
+                        <h5 class="card-title fw-bold text-dark mb-3">Predictive Scoring</h5>
+                        <p class="card-text text-secondary small mb-4">XGBoost models calculate probability scores paired with Explainable AI (SHAP/LIME).</p>
+                        <div class="mt-auto d-flex flex-wrap justify-content-center gap-2">
+                            <span class="badge bg-light text-info border border-info border-opacity-25 rounded-pill px-3 py-2 text-dark">XGBoost</span>
+                            <span class="badge bg-light text-info border border-info border-opacity-25 rounded-pill px-3 py-2 text-dark">SHAP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 text-white position-relative" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); overflow: hidden;">
+    <div class="position-absolute bg-white rounded-circle opacity-10" style="width: 300px; height: 300px; top: -100px; left: -100px; blur(40px);"></div>
+    <div class="position-absolute bg-white rounded-circle opacity-10" style="width: 400px; height: 400px; bottom: -200px; right: -100px; blur(60px);"></div>
+    
+    <div class="container position-relative z-1 py-4">
+        <div class="row text-center g-4">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="100">
+                <div class="stat-item hover-lift">
+                    <div class="display-4 fw-bolder text-info mb-2 counter">99.8<span class="fs-4">%</span></div>
+                    <p class="text-light text-opacity-90 mb-0 fw-semibold letter-spacing-1 text-uppercase small">Detection Accuracy</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200">
+                <div class="stat-item hover-lift">
+                    <div class="display-4 fw-bolder text-warning mb-2 counter">24<span class="fs-4">/7</span></div>
+                    <p class="text-light text-opacity-90 mb-0 fw-semibold letter-spacing-1 text-uppercase small">Active Monitoring</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
+                <div class="stat-item hover-lift">
+                    <div class="display-4 fw-bolder text-success mb-2 counter">92<span class="fs-4">%</span></div>
+                    <p class="text-light text-opacity-90 mb-0 fw-semibold letter-spacing-1 text-uppercase small">Fraud Prevention</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="400">
+                <div class="stat-item hover-lift">
+                    <div class="display-4 fw-bolder text-white mb-2 counter">5K<span class="fs-4">+</span></div>
+                    <p class="text-light text-opacity-90 mb-0 fw-semibold letter-spacing-1 text-uppercase small">Claims Analyzed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-6 bg-white">
+    <div class="container py-5">
+        <div class="bg-light rounded-5 p-5 p-md-5 text-center position-relative overflow-hidden shadow-sm border border-secondary border-opacity-10" data-aos="fade-up">
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary bg-opacity-10 pointer-events-none" style="mask-image: radial-gradient(white, black); -webkit-mask-image: radial-gradient(circle, white 0%, transparent 70%);"></div>
+            
+            <div class="position-relative z-1 mx-auto" style="max-width: 700px;">
+                <h2 class="display-6 fw-bold text-dark mb-3">Ready to Secure Your Institution?</h2>
+                <p class="lead text-secondary mb-5">Join forward-thinking insurance companies using RiskRadar's self-correcting AI loop to stay one step ahead of organized fraud.</p>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-hover text-white fw-bold d-inline-flex align-items-center">
+                            <i class="fas fa-shield-check me-2 fs-5"></i>Deploy RiskRadar Today
+                        </a>
+                    {% else %}
+                        <a href="{% if current_user.role == 'user' %}{{ url_for('user.new_claim') }}{% else %}{{ url_for('admin.dashboard') }}{% endif %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow-hover text-white fw-bold d-inline-flex align-items-center">
+                            <i class="fas fa-play-circle me-2 fs-5"></i>Enter System Portal
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* Spacing Utilities */
+    .py-6 { padding-top: 5rem; padding-bottom: 5rem; }
+    .letter-spacing-1 { letter-spacing: 1px; }
+    
+    /* Hero Section Enhancements */
+    .hero-section {
+        background: #f8faff;
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero-bg-shape {
+        background-image: radial-gradient(#0d6efd 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: linear-gradient(to bottom, black, transparent);
+        -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+    }
+    
+    .text-primary-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    /* Floating Animations */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 12px 20px;
+        position: absolute;
+        animation: float 4s ease-in-out infinite;
+        z-index: 5;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    
+    /* Pulse Rings */
+    .pulse-ring-1, .pulse-ring-2 {
+        animation: pulse 3s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+    }
+    .pulse-ring-2 { animation-delay: 1.5s; }
+    
+    @keyframes pulse {
+        0% { transform: scale(0.9); opacity: 1; }
+        100% { transform: scale(1.6); opacity: 0; }
+    }
+    
+    /* Feature Cards */
+    .feature-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .card-top-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08) !important;
+    }
+    
+    .feature-card:hover .card-top-line {
+        transform: scaleX(1);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    /* Stats Section */
+    .stat-item {
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    /* Interactive Button Utilities */
+    .shadow-hover { transition: all 0.3s ease; }
+    .shadow-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(13, 110, 253, 0.4) !important;
+    }
+    
+    .hover-lift { transition: transform 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-3px); }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Simple counter animation trigger when stats section comes into view via AOS
+        const counters = document.querySelectorAll('.counter');
+        const speed = 200; 
+
+        // We rely on AOS to show the elements, but we can add a tiny delay for the number effect if desired.
+        // For a hackathon, static numbers styled beautifully (as done above) often work just as well, 
+        // but this provides the hook if you want to implement a JS counting effect later.
+    });
+</script>
+{% endblock %}

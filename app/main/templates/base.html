@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RiskRadar - AI-Powered Fraud Detection{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        /* Smooth Scrolling & Body Flex for sticky footer */
+        html { scroll-behavior: smooth; }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .main-content { flex: 1; margin-top: 3rem; }
+
+        /* Modern Gradient Navbar with Glass effect */
+        .bg-primary-gradient {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .navbar-brand { letter-spacing: 1px; }
+        
+        /* Animated Nav Links */
+        .navbar-nav .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 4px;
+            left: 50%;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        .navbar-nav .nav-link:not(.btn):hover::after { width: 80%; }
+        
+        /* Elevated Buttons */
+        .btn {
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-weight: 500;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animated Flash Messages */
+        .alert {
+            animation: slideInDownFade 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            border-radius: 12px;
+            border: none;
+            border-left: 6px solid;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        }
+        .alert-success { border-left-color: #198754; color: #146c43; }
+        .alert-danger { border-left-color: #dc3545; color: #b02a37; }
+        .alert-info { border-left-color: #0dcaf0; color: #087990; }
+
+        @keyframes slideInDownFade {
+            0% { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* Footer Hover Effects */
+        footer.bg-dark { 
+            background-color: #1a1d20 !important;
+            position: relative;
+            z-index: 10;
+        }
+        .footer-link {
+            transition: all 0.3s ease;
+            display: inline-block;
+            font-size: 0.95rem !important;
+        }
+        .footer-link:hover {
+            color: #60a5fa !important;
+            transform: translateX(5px);
+        }
+        .social-icon {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-block;
+            font-size: 1.25rem !important;
+        }
+        .social-icon:hover {
+            transform: translateY(-5px) scale(1.15) rotate(5deg);
+            color: #60a5fa !important;
+        }
+        
+        /* Dropdown Animation */
+        .dropdown-menu {
+            animation: fadeIn 0.3s ease;
+            border-radius: 10px;
+            border: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary-gradient fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="{{ url_for('main.index') }}" data-aos="fade-right">
+                <i class="fas fa-shield-alt me-2 text-info"></i>RiskRadar
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto" data-aos="fade-down" data-aos-delay="100">
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{{ url_for('main.index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{{ url_for('main.about') }}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="{{ url_for('main.contact') }}">Contact</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav align-items-center" data-aos="fade-left" data-aos-delay="200">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role == 'user' %}
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{{ url_for('user.dashboard') }}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-info text-white btn-sm ms-2 px-3 py-2 rounded-pill shadow-sm" href="{{ url_for('user.new_claim') }}">
+                                    <i class="fas fa-plus me-1"></i>New Claim
+                                </a>
+                            </li>
+                        {% elif current_user.role in ['officer', 'admin'] %}
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{{ url_for('admin.dashboard') }}">
+                                    <i class="fas fa-chart-line me-1"></i>Admin Dashboard
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item dropdown ms-3">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span>{{ current_user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-user-circle me-2 text-muted"></i>Profile</a></li>
+                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-cog me-2 text-muted"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('main.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{{ url_for('main.login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-outline-light btn-sm ms-3 px-4 py-2 rounded-pill" href="{{ url_for('main.register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container mt-5 pt-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2 fs-5 align-middle"></i>
+                            <span class="align-middle">{{ message }}</span>
+                            <button type="button" class="btn-close mt-1" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div data-aos="fade-up" data-aos-duration="1000">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="bg-dark text-light py-5 mt-auto border-top border-secondary border-opacity-25">
+        <div class="container py-3">
+            <div class="row g-4">
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <h5 class="fw-bold mb-3 text-white fs-4"><i class="fas fa-shield-alt text-info me-2"></i>RiskRadar</h5>
+                    <p class="text-light text-opacity-75 pe-lg-4 fs-6">Advanced AI-powered insurance fraud detection system that protects your business from financial losses and streamlines authentic claims.</p>
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="#" class="text-light text-opacity-75 fs-4 social-icon"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-light text-opacity-75 fs-4 social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-light text-opacity-75 fs-4 social-icon"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-light text-opacity-75 fs-4 social-icon"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <h6 class="fw-bold mb-3 text-white fs-5">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('main.index') }}" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.about') }}" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">About</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.contact') }}" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">Contact</a></li>
+                        <li class="mb-2"><a href="#" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">Features</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <h6 class="fw-bold mb-3 text-white fs-5">Resources</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">Documentation</a></li>
+                        <li class="mb-2"><a href="#" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">API</a></li>
+                        <li class="mb-2"><a href="#" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">Support</a></li>
+                        <li class="mb-2"><a href="#" class="text-light text-opacity-75 text-decoration-none footer-link fs-6">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
+                    <h6 class="fw-bold mb-3 text-white fs-5">Newsletter</h6>
+                    <p class="text-light text-opacity-75 fs-6">Subscribe to our newsletter for the latest AI security updates.</p>
+                    <div class="input-group shadow-sm mt-3">
+                        <input type="email" class="form-control bg-dark border-secondary text-light fs-6" placeholder="Your email address">
+                        <button class="btn btn-primary px-4 fs-6" type="button">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 border-secondary border-opacity-50">
+            <div class="text-center py-2" data-aos="fade-in" data-aos-delay="500">
+                <p class="text-light text-opacity-75 mb-0 fs-6">&copy; 2026 RiskRadar. All rights reserved. Built with <i class="fas fa-heart text-danger"></i> by Team RiskRadar for a secure future.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-out-cubic',
+                once: true,
+                offset: 50
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
