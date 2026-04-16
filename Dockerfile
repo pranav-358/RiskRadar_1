@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 # Create necessary directories first
 RUN mkdir -p app/static/uploads/temp app/static/uploads/documents instance training_data/models
 
@@ -30,5 +33,5 @@ RUN python train_models.py || echo "Model training will happen at runtime"
 # Expose port 7860 (Hugging Face Spaces default)
 EXPOSE 7860
 
-# Run the application
-CMD ["python", "run.py"]
+# Run the startup script
+CMD ["bash", "start.sh"]
