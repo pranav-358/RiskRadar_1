@@ -21,8 +21,9 @@ COPY . .
 # Make startup script executable
 RUN chmod +x start.sh
 
-# Create necessary directories first
-RUN mkdir -p app/static/uploads/temp app/static/uploads/documents instance training_data/models
+# Create necessary directories first with proper permissions
+RUN mkdir -p app/static/uploads/temp app/static/uploads/documents instance training_data/models && \
+    chmod -R 777 instance app/static/uploads training_data/models
 
 # Set matplotlib backend to non-interactive
 ENV MPLBACKEND=Agg

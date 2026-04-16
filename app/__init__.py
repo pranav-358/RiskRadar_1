@@ -17,11 +17,21 @@ migrate = Migrate()
 def create_app():
     app = Flask(__name__)
     
+    # Get the absolute path to the app directory
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    instance_path = os.path.join(os.path.dirname(basedir), 'instance')
+    
+    # Ensure instance directory exists
+    os.makedirs(instance_path, exist_ok=True)
+    
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'riskradar-secret-key-2026-hackathon')
+    
+    # Use absolute path for database
+    db_path = os.path.join(instance_path, 'riskradar.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
         'DATABASE_URL', 
-        'sqlite:///instance/riskradar.db'
+        f'sqlite:///{db_path}'
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static/uploads')
@@ -44,6 +54,9 @@ def create_app():
     app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit
     app.config['WTF_CSRF_SSL_STRICT'] = False  # Don't require HTTPS
     app.config['WTF_CSRF_CHECK_DEFAULT'] = True
+    
+    print(f"✓ Database path: {db_path}")
+    print(f"✓ Instance directory: {instance_path}")
     
     # Initialize extensions
     db.init_app(app)
