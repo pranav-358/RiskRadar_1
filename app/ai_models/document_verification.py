@@ -65,63 +65,69 @@ class DocumentVerificationAI:
                 claimant_name = claim_data['claimant'].get('name', '').strip()
                 logger.info(f"Claimant name: {claimant_name}")
             
-            # 3. CRITICAL: If OCR completely failed, this is HIGHLY SUSPICIOUS
+            # 3. Handle OCR extraction issues more gracefully
             if len(extracted_text) < 5:
-                # OCR extracted almost nothing - MAJOR RED FLAG
-                authenticity_score -= 50.0  # Massive penalty
-                findings.append("🚨 CRITICAL: OCR failed to extract meaningful text from document")
-                findings.append("⚠️ This could indicate: (1) Very poor image quality, (2) Heavily edited/tampered document, (3) Screenshot from internet")
+                # OCR extracted very little text - could be poor quality OR tampering
+                # Be more lenient - reduce penalty from 50 to 25 points
+                authenticity_score -= 25.0  # Moderate penalty instead of massive
+                findings.append("⚠️ WARNING: OCR extracted minimal text from document")
+                findings.append("📋 Possible reasons:")
+                findings.append("   • Image quality is too low (blurry, dark, or low resolution)")
+                findings.append("   • Document is handwritten (harder for OCR)")
+                findings.append("   • Image is a photo of a document (not a scan)")
+                findings.append("   • Document may be tampered or edited")
+                findings.append("💡 Recommendation: Upload a clearer, high-resolution scan or photo")
                 risk_factors.append({
-                    'type': 'ocr_complete_failure',
-                    'severity': 'critical',
-                    'description': 'OCR could not extract any meaningful text - highly suspicious',
-                    'impact': 50.0
+                    'type': 'low_text_extraction',
+                    'severity': 'medium',  # Changed from 'critical' to 'medium'
+                    'description': 'OCR extracted minimal text - may indicate poor image quality or tampering',
+                    'impact': 25.0  # Reduced from 50.0
                 })
                 
-                # If we can't extract text, we can't verify anything - HIGH RISK
-                logger.warning("⚠️ OCR COMPLETE FAILURE - Document is highly suspicious")
+                logger.warning(f"⚠️ Low text extraction: Only {len(extracted_text)} characters extracted")
             
             # 4. Name Verification - Compare extracted name with claimant name
-            elif claimant_name and extracted_text:
+            # Only check if we have reasonable amount of text
+            elif claimant_name and len(extracted_text) >= 10:
                 name_match_result = self._verify_name_match(extracted_text, claimant_name)
                 
                 logger.info(f"Name match result: {name_match_result}")
                 
                 if not name_match_result['match_found']:
-                    # CRITICAL: Name mismatch detected
-                    authenticity_score -= 40.0
-                    findings.append(f"🚨 CRITICAL: Name mismatch detected!")
+                    # Name mismatch detected - but be more lenient
+                    authenticity_score -= 30.0  # Reduced from 40.0
+                    findings.append(f"⚠️ WARNING: Name verification issue")
                     findings.append(f"   Expected: '{claimant_name}'")
-                    findings.append(f"   Found in document: Names detected but no match")
-                    findings.append(f"   ⚠️ This document likely belongs to someone else!")
+                    findings.append(f"   Status: Name not clearly found in extracted text")
+                    findings.append(f"   Note: This could be due to OCR limitations or document format")
                     risk_factors.append({
-                        'type': 'name_mismatch',
-                        'severity': 'critical',
-                        'description': f"Claimant name '{claimant_name}' not found in document",
-                        'impact': 40.0
+                        'type': 'name_not_found',
+                        'severity': 'high',  # Changed from 'critical'
+                        'description': f"Claimant name '{claimant_name}' not found in extracted text",
+                        'impact': 30.0  # Reduced from 40.0
                     })
                 elif name_match_result['similarity'] < 0.8:
                     # Partial name match
-                    authenticity_score -= 20.0
+                    authenticity_score -= 15.0  # Reduced from 20.0
                     findings.append(f"⚠️ Partial name match: Found '{name_match_result['found_name']}' (similarity: {name_match_result['similarity']:.2%})")
                     risk_factors.append({
                         'type': 'name_partial_match',
-                        'severity': 'high',
+                        'severity': 'medium',  # Changed from 'high'
                         'description': f"Name similarity only {name_match_result['similarity']:.2%}",
-                        'impact': 20.0
+                        'impact': 15.0  # Reduced from 20.0
                     })
                 else:
                     findings.append(f"✓ Name verified: '{name_match_result['found_name']}' matches claimant '{claimant_name}'")
-            elif claimant_name and not extracted_text:
-                # No text extracted but we have claimant name - suspicious
-                authenticity_score -= 45.0
-                findings.append("🚨 CRITICAL: Unable to extract text to verify claimant name")
-                findings.append("⚠️ Cannot verify if document belongs to claimant")
+            elif claimant_name and len(extracted_text) < 10:
+                # Very little text extracted - can't verify name reliably
+                authenticity_score -= 20.0  # Moderate penalty
+                findings.append("⚠️ Insufficient text extracted to verify claimant name")
+                findings.append("💡 Please upload a clearer image for better verification")
                 risk_factors.append({
-                    'type': 'text_extraction_failed',
-                    'severity': 'critical',
-                    'description': 'No text extracted - cannot verify document authenticity',
-                    'impact': 45.0
+                    'type': 'insufficient_text_for_verification',
+                    'severity': 'medium',
+                    'description': 'Not enough text extracted to verify document authenticity',
+                    'impact': 20.0
                 })
             
             # 5. Image Tampering Detection
@@ -152,15 +158,16 @@ class DocumentVerificationAI:
                     'impact': 15.0
                 })
             
-            # 7. Document Quality Check
+            # 7. Document Quality Check - Be more lenient
             if text_confidence < 0.3 and len(extracted_text) > 0:
-                authenticity_score -= 15.0
-                findings.append(f"⚠️ Low OCR confidence ({text_confidence:.2%}) - document may be poor quality or altered")
+                authenticity_score -= 10.0  # Reduced from 15.0
+                findings.append(f"ℹ️ Low OCR confidence ({text_confidence:.2%}) - document quality could be improved")
+                findings.append("💡 Tip: Use a scanner or take photo in good lighting for better results")
                 risk_factors.append({
                     'type': 'low_quality',
-                    'severity': 'medium',
-                    'description': f'OCR confidence only {text_confidence:.2%}',
-                    'impact': 15.0
+                    'severity': 'low',  # Changed from 'medium'
+                    'description': f'OCR confidence only {text_confidence:.2%} - image quality issue',
+                    'impact': 10.0  # Reduced from 15.0
                 })
             
             # Ensure score stays in valid range

@@ -146,6 +146,7 @@ class OCRProcessor:
     def _extract_from_image(self, file_path):
         """
         Extract text from image file using MULTIPLE methods for maximum accuracy
+        IMPROVED VERSION: More lenient, better preprocessing, handles poor quality images
         
         Args:
             file_path (str): Path to image file
@@ -153,105 +154,185 @@ class OCRProcessor:
         Returns:
             dict: Extracted text and metadata
         """
-        logger.info(f"Starting OCR extraction from: {file_path}")
+        logger.info(f"="*70)
+        logger.info(f"Starting IMPROVED OCR extraction from: {file_path}")
+        logger.info(f"="*70)
         
         try:
             # Read original image
             original_img = cv2.imread(file_path)
             if original_img is None:
                 logger.error(f"Failed to read image: {file_path}")
-                return {"text": "", "confidence": 0, "error": "Cannot read image file"}
+                return {"text": "", "confidence": 0, "error": "Cannot read image file", "method": "error"}
             
-            logger.info(f"Image loaded: {original_img.shape}")
+            logger.info(f"Image loaded successfully: {original_img.shape}")
             
-            # Try MULTIPLE preprocessing methods and keep the best result
+            # Try MULTIPLE preprocessing methods and keep ALL results
             results = []
             
-            # Method 1: Original image with EasyOCR
-            logger.info("Method 1: Processing original image...")
+            # Method 1: Original image (no preprocessing)
+            logger.info("Method 1: Original image (no preprocessing)...")
             result1 = self._try_ocr_extraction(original_img, "original")
             results.append(result1)
-            logger.info(f"Method 1 result: {len(result1['text'])} chars, confidence: {result1['confidence']:.2%}")
+            logger.info(f"  → {len(result1['text'])} chars, {result1['confidence']:.2%} confidence")
             
-            # Method 2: Grayscale + Adaptive Threshold (BEST for handwritten)
-            logger.info("Method 2: Adaptive threshold (for handwritten)...")
+            # Method 2: Grayscale only (simple and effective)
+            logger.info("Method 2: Grayscale conversion...")
             gray = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
+            result2 = self._try_ocr_extraction(gray, "grayscale")
+            results.append(result2)
+            logger.info(f"  → {len(result2['text'])} chars, {result2['confidence']:.2%} confidence")
+            
+            # Method 3: Adaptive Threshold (BEST for handwritten/varied lighting)
+            logger.info("Method 3: Adaptive threshold (for handwritten/varied lighting)...")
             adaptive = cv2.adaptiveThreshold(
                 gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                 cv2.THRESH_BINARY, 11, 2
             )
-            result2 = self._try_ocr_extraction(adaptive, "adaptive_threshold")
-            results.append(result2)
-            logger.info(f"Method 2 result: {len(result2['text'])} chars, confidence: {result2['confidence']:.2%}")
-            
-            # Method 3: Otsu's thresholding (BEST for printed text)
-            logger.info("Method 3: Otsu threshold (for printed text)...")
-            _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            result3 = self._try_ocr_extraction(otsu, "otsu_threshold")
+            result3 = self._try_ocr_extraction(adaptive, "adaptive_threshold")
             results.append(result3)
-            logger.info(f"Method 3 result: {len(result3['text'])} chars, confidence: {result3['confidence']:.2%}")
+            logger.info(f"  → {len(result3['text'])} chars, {result3['confidence']:.2%} confidence")
             
-            # Method 4: Denoised + Sharpened
-            logger.info("Method 4: Denoised + sharpened...")
-            denoised = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
-            kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-            sharpened = cv2.filter2D(denoised, -1, kernel)
-            result4 = self._try_ocr_extraction(sharpened, "denoised_sharpened")
+            # Method 4: Otsu's thresholding (BEST for printed text with uniform background)
+            logger.info("Method 4: Otsu threshold (for printed text)...")
+            _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            result4 = self._try_ocr_extraction(otsu, "otsu_threshold")
             results.append(result4)
-            logger.info(f"Method 4 result: {len(result4['text'])} chars, confidence: {result4['confidence']:.2%}")
+            logger.info(f"  → {len(result4['text'])} chars, {result4['confidence']:.2%} confidence")
             
-            # Method 5: Contrast enhancement + Morphological operations
-            logger.info("Method 5: Enhanced contrast + morphology...")
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-            enhanced = clahe.apply(gray)
-            kernel = np.ones((2,2), np.uint8)
-            morph = cv2.morphologyEx(enhanced, cv2.MORPH_CLOSE, kernel)
-            result5 = self._try_ocr_extraction(morph, "enhanced_morph")
-            results.append(result5)
-            logger.info(f"Method 5 result: {len(result5['text'])} chars, confidence: {result5['confidence']:.2%}")
+            # Method 5: Denoised + Sharpened (for noisy images)
+            logger.info("Method 5: Denoised + sharpened (for noisy images)...")
+            try:
+                denoised = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
+                kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+                sharpened = cv2.filter2D(denoised, -1, kernel)
+                result5 = self._try_ocr_extraction(sharpened, "denoised_sharpened")
+                results.append(result5)
+                logger.info(f"  → {len(result5['text'])} chars, {result5['confidence']:.2%} confidence")
+            except Exception as e:
+                logger.warning(f"  → Denoising failed: {e}")
             
-            # Method 6: PIL enhancement (last resort)
-            logger.info("Method 6: PIL enhancement...")
+            # Method 6: CLAHE (Contrast Limited Adaptive Histogram Equalization)
+            logger.info("Method 6: CLAHE enhancement (for low contrast)...")
+            try:
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+                enhanced = clahe.apply(gray)
+                result6 = self._try_ocr_extraction(enhanced, "clahe_enhanced")
+                results.append(result6)
+                logger.info(f"  → {len(result6['text'])} chars, {result6['confidence']:.2%} confidence")
+            except Exception as e:
+                logger.warning(f"  → CLAHE failed: {e}")
+            
+            # Method 7: Morphological operations (for broken text)
+            logger.info("Method 7: Morphological operations (for broken text)...")
+            try:
+                kernel = np.ones((2,2), np.uint8)
+                morph = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, kernel)
+                result7 = self._try_ocr_extraction(morph, "morphological")
+                results.append(result7)
+                logger.info(f"  → {len(result7['text'])} chars, {result7['confidence']:.2%} confidence")
+            except Exception as e:
+                logger.warning(f"  → Morphological operations failed: {e}")
+            
+            # Method 8: Bilateral filter (preserves edges while reducing noise)
+            logger.info("Method 8: Bilateral filter (edge-preserving denoising)...")
+            try:
+                bilateral = cv2.bilateralFilter(gray, 9, 75, 75)
+                result8 = self._try_ocr_extraction(bilateral, "bilateral_filter")
+                results.append(result8)
+                logger.info(f"  → {len(result8['text'])} chars, {result8['confidence']:.2%} confidence")
+            except Exception as e:
+                logger.warning(f"  → Bilateral filter failed: {e}")
+            
+            # Method 9: PIL enhancement (last resort for very poor images)
+            logger.info("Method 9: PIL enhancement (aggressive enhancement)...")
             try:
                 pil_img = Image.open(file_path)
-                # Increase contrast
+                # Increase contrast aggressively
                 enhancer = ImageEnhance.Contrast(pil_img)
-                pil_enhanced = enhancer.enhance(2.5)
+                pil_enhanced = enhancer.enhance(3.0)
                 # Increase sharpness
                 enhancer = ImageEnhance.Sharpness(pil_enhanced)
-                pil_enhanced = enhancer.enhance(2.0)
+                pil_enhanced = enhancer.enhance(2.5)
+                # Increase brightness
+                enhancer = ImageEnhance.Brightness(pil_enhanced)
+                pil_enhanced = enhancer.enhance(1.5)
                 # Convert to grayscale
                 pil_enhanced = pil_enhanced.convert('L')
                 # Convert to numpy array
                 pil_array = np.array(pil_enhanced)
-                result6 = self._try_ocr_extraction(pil_array, "pil_enhanced")
-                results.append(result6)
-                logger.info(f"Method 6 result: {len(result6['text'])} chars, confidence: {result6['confidence']:.2%}")
+                result9 = self._try_ocr_extraction(pil_array, "pil_aggressive")
+                results.append(result9)
+                logger.info(f"  → {len(result9['text'])} chars, {result9['confidence']:.2%} confidence")
             except Exception as e:
-                logger.warning(f"PIL enhancement failed: {e}")
+                logger.warning(f"  → PIL enhancement failed: {e}")
             
-            # Choose the BEST result (most text extracted with reasonable confidence)
-            best_result = max(results, key=lambda x: len(x.get('text', '')) * (x.get('confidence', 0) + 0.1))
+            # Method 10: Inverted image (for white text on dark background)
+            logger.info("Method 10: Inverted image (for white-on-dark text)...")
+            try:
+                inverted = cv2.bitwise_not(gray)
+                result10 = self._try_ocr_extraction(inverted, "inverted")
+                results.append(result10)
+                logger.info(f"  → {len(result10['text'])} chars, {result10['confidence']:.2%} confidence")
+            except Exception as e:
+                logger.warning(f"  → Inversion failed: {e}")
             
-            logger.info(f"BEST RESULT: {best_result['method']} - {len(best_result['text'])} chars, {best_result['confidence']:.2%} confidence")
-            logger.info(f"Extracted text preview: {best_result['text'][:100]}...")
+            logger.info(f"\n{'='*70}")
+            logger.info(f"EXTRACTION COMPLETE - Tested {len(results)} methods")
+            logger.info(f"{'='*70}")
+            
+            # Choose the BEST result based on multiple factors
+            # Priority: 1) Most text extracted, 2) Reasonable confidence
+            valid_results = [r for r in results if len(r.get('text', '')) > 0]
+            
+            if not valid_results:
+                logger.error("❌ ALL METHODS FAILED - No text extracted by any method")
+                return {
+                    "text": "",
+                    "confidence": 0.0,
+                    "word_count": 0,
+                    "method": "all_failed",
+                    "error": "All OCR methods failed to extract text. Image may be corrupted, too low quality, or not contain readable text."
+                }
+            
+            # Sort by text length (more text is usually better)
+            valid_results.sort(key=lambda x: len(x.get('text', '')), reverse=True)
+            
+            # Take top 3 results and choose best based on confidence
+            top_results = valid_results[:3]
+            best_result = max(top_results, key=lambda x: x.get('confidence', 0) * (1 + len(x.get('text', '')) / 1000))
+            
+            logger.info(f"\n🏆 BEST RESULT:")
+            logger.info(f"   Method: {best_result['method']}")
+            logger.info(f"   Text length: {len(best_result['text'])} characters")
+            logger.info(f"   Word count: {best_result.get('word_count', 0)} words")
+            logger.info(f"   Confidence: {best_result['confidence']:.2%}")
+            logger.info(f"   Preview: {best_result['text'][:150]}...")
+            logger.info(f"{'='*70}\n")
             
             return best_result
             
         except Exception as e:
-            logger.error(f"Error processing image {file_path}: {str(e)}", exc_info=True)
-            return {"text": "", "confidence": 0, "error": str(e), "method": "error"}
+            logger.error(f"❌ CRITICAL ERROR processing image {file_path}: {str(e)}", exc_info=True)
+            return {
+                "text": "",
+                "confidence": 0.0,
+                "word_count": 0,
+                "method": "error",
+                "error": str(e)
+            }
     
     def _try_ocr_extraction(self, image, method_name):
         """
-        Try OCR extraction with both EasyOCR and Tesseract
+        Try OCR extraction with BOTH EasyOCR and Tesseract, return the best result
+        IMPROVED VERSION: More aggressive, tries multiple configurations
         
         Args:
             image: Image array (numpy)
             method_name: Name of preprocessing method
             
         Returns:
-            dict: Extraction result
+            dict: Extraction result with text, confidence, and metadata
         """
         text = ""
         confidence = 0.0
@@ -260,7 +341,18 @@ class OCRProcessor:
             # Try EasyOCR first (better for handwritten and Hindi)
             if self.reader is not None:
                 try:
-                    results = self.reader.readtext(image, detail=1, paragraph=False)
+                    # EasyOCR with multiple parameter combinations
+                    results = self.reader.readtext(
+                        image, 
+                        detail=1, 
+                        paragraph=False,
+                        min_size=5,  # Detect smaller text
+                        text_threshold=0.5,  # Lower threshold for detection
+                        low_text=0.3,  # Lower threshold for text regions
+                        link_threshold=0.3,  # Lower threshold for linking
+                        canvas_size=2560,  # Larger canvas for better detection
+                        mag_ratio=1.5  # Magnification ratio
+                    )
                     
                     if results:
                         text_parts = []
@@ -268,67 +360,103 @@ class OCRProcessor:
                         
                         for detection in results:
                             bbox, detected_text, conf = detection
-                            text_parts.append(detected_text)
-                            confidences.append(conf)
+                            # Only include text with reasonable confidence
+                            if conf > 0.2:  # Very low threshold
+                                text_parts.append(detected_text)
+                                confidences.append(conf)
                         
-                        text = " ".join(text_parts)
-                        confidence = sum(confidences) / len(confidences) if confidences else 0.0
-                        
-                        logger.debug(f"EasyOCR ({method_name}): {len(text)} chars, {confidence:.2%} confidence")
+                        if text_parts:
+                            text = " ".join(text_parts)
+                            confidence = sum(confidences) / len(confidences) if confidences else 0.0
+                            logger.debug(f"  EasyOCR ({method_name}): {len(text)} chars, {confidence:.2%} confidence")
                 except Exception as e:
-                    logger.warning(f"EasyOCR failed for {method_name}: {e}")
+                    logger.debug(f"  EasyOCR failed for {method_name}: {e}")
             
-            # If EasyOCR didn't work or got poor results, try Tesseract
-            if (len(text) < 10 or confidence < 0.3) and self.tesseract_available:
+            # If EasyOCR didn't work well, try Tesseract with MULTIPLE configurations
+            if (len(text) < 20 or confidence < 0.4) and self.tesseract_available:
                 try:
                     # Ensure image is in correct format for Tesseract
                     if len(image.shape) == 3:
                         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                     
-                    # Try with different Tesseract configs
+                    # Try MULTIPLE Tesseract configurations
                     configs = [
-                        '--psm 6',  # Assume uniform block of text
-                        '--psm 3',  # Fully automatic page segmentation
-                        '--psm 11', # Sparse text
+                        '--psm 6 --oem 3',  # Uniform block of text, LSTM engine
+                        '--psm 3 --oem 3',  # Fully automatic, LSTM engine
+                        '--psm 11 --oem 3', # Sparse text, LSTM engine
+                        '--psm 6 --oem 1',  # Uniform block, Legacy engine
+                        '--psm 4 --oem 3',  # Single column, LSTM engine
+                        '--psm 1 --oem 3',  # Automatic with OSD, LSTM engine
                     ]
                     
-                    best_text = ""
-                    best_conf = 0.0
+                    best_tess_text = ""
+                    best_tess_conf = 0.0
                     
                     for config in configs:
                         try:
-                            tess_text = pytesseract.image_to_string(image, config=config, lang='eng+hin')
-                            tess_data = pytesseract.image_to_data(image, config=config, lang='eng+hin', output_type=pytesseract.Output.DICT)
+                            # Extract text
+                            tess_text = pytesseract.image_to_string(
+                                image, 
+                                config=config, 
+                                lang='eng+hin'
+                            ).strip()
                             
-                            # Calculate average confidence
-                            confs = [float(c) for c in tess_data['conf'] if str(c).replace('.','').replace('-','').isdigit() and float(c) > 0]
+                            # Get confidence data
+                            tess_data = pytesseract.image_to_data(
+                                image, 
+                                config=config, 
+                                lang='eng+hin', 
+                                output_type=pytesseract.Output.DICT
+                            )
+                            
+                            # Calculate average confidence (only for valid detections)
+                            confs = [
+                                float(c) for c in tess_data['conf'] 
+                                if str(c).replace('.','').replace('-','').isdigit() and float(c) > 0
+                            ]
                             tess_conf = sum(confs) / len(confs) / 100.0 if confs else 0.0
                             
-                            if len(tess_text) > len(best_text):
-                                best_text = tess_text
-                                best_conf = tess_conf
+                            # Keep the result with most text
+                            if len(tess_text) > len(best_tess_text):
+                                best_tess_text = tess_text
+                                best_tess_conf = tess_conf
+                                logger.debug(f"  Tesseract config '{config}': {len(tess_text)} chars, {tess_conf:.2%} conf")
+                        
                         except Exception as e:
-                            logger.debug(f"Tesseract config {config} failed: {e}")
+                            logger.debug(f"  Tesseract config '{config}' failed: {e}")
                             continue
                     
-                    # Use Tesseract result if better than EasyOCR
-                    if len(best_text) > len(text):
-                        text = best_text
-                        confidence = best_conf
-                        logger.debug(f"Tesseract ({method_name}): {len(text)} chars, {confidence:.2%} confidence")
+                    # Use Tesseract result if it's better than EasyOCR
+                    if len(best_tess_text) > len(text):
+                        text = best_tess_text
+                        confidence = best_tess_conf
+                        logger.debug(f"  Using Tesseract result: {len(text)} chars, {confidence:.2%} confidence")
                 
                 except Exception as e:
-                    logger.warning(f"Tesseract failed for {method_name}: {e}")
+                    logger.debug(f"  Tesseract processing failed for {method_name}: {e}")
+            
+            # Clean up the extracted text
+            text = text.strip()
+            
+            # Calculate word count
+            word_count = len(text.split()) if text else 0
+            
+            return {
+                "text": text,
+                "confidence": confidence,
+                "word_count": word_count,
+                "method": method_name
+            }
             
         except Exception as e:
-            logger.error(f"OCR extraction error for {method_name}: {e}")
-        
-        return {
-            "text": text.strip(),
-            "confidence": confidence,
-            "word_count": len(text.split()),
-            "method": method_name
-        }
+            logger.error(f"  OCR extraction error for {method_name}: {e}")
+            return {
+                "text": "",
+                "confidence": 0.0,
+                "word_count": 0,
+                "method": method_name,
+                "error": str(e)
+            }
     
     def _preprocess_image(self, file_path):
         """
