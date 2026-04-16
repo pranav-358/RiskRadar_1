@@ -39,6 +39,12 @@ def create_app():
     app.config['REMEMBER_COOKIE_SECURE'] = False
     app.config['REMEMBER_COOKIE_HTTPONLY'] = True
     
+    # WTF CSRF configuration for Hugging Face Spaces
+    app.config['WTF_CSRF_ENABLED'] = True
+    app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit
+    app.config['WTF_CSRF_SSL_STRICT'] = False  # Don't require HTTPS
+    app.config['WTF_CSRF_CHECK_DEFAULT'] = True
+    
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
