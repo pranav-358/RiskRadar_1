@@ -50,10 +50,9 @@ def create_app():
     app.config['REMEMBER_COOKIE_HTTPONLY'] = True
     
     # WTF CSRF configuration for Hugging Face Spaces
-    app.config['WTF_CSRF_ENABLED'] = True
-    app.config['WTF_CSRF_TIME_LIMIT'] = None  # No time limit
-    app.config['WTF_CSRF_SSL_STRICT'] = False  # Don't require HTTPS
-    app.config['WTF_CSRF_CHECK_DEFAULT'] = True
+    # DISABLE CSRF for Hugging Face iframe compatibility
+    app.config['WTF_CSRF_ENABLED'] = False  # Disabled for HF Spaces iframe
+    app.config['WTF_CSRF_CHECK_DEFAULT'] = False
     
     print(f"✓ Database path: {db_path}")
     print(f"✓ Instance directory: {instance_path}")
