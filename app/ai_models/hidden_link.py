@@ -171,9 +171,9 @@ class HiddenLinkAI:
         claim_id = claim_data.get('claim_id', f"CLAIM_{hashlib.md5(str(claim_data).encode()).hexdigest()[:8]}")
         
         # Add claim node
-        self.graph.add_node(claim_id, type='claim', **{
+        self.graph.add_node(claim_id, node_type='claim', **{
             'amount': claim_data.get('claim_amount', 0),
-            'type': claim_data.get('claim_type', 'unknown'),
+            'claim_type': claim_data.get('claim_type', 'unknown'),
             'date': claim_data.get('submission_date', ''),
             'status': 'new'
         })
@@ -183,7 +183,7 @@ class HiddenLinkAI:
             for entity in entity_list:
                 # Add entity node if not exists
                 if entity not in self.graph:
-                    self.graph.add_node(entity, type=entity_type.split('_')[0].lower())
+                    self.graph.add_node(entity, node_type=entity_type.split('_')[0].lower())
                 
                 # Create connection between claim and entity
                 self.graph.add_edge(claim_id, entity, relationship=entity_type)
@@ -224,7 +224,7 @@ class HiddenLinkAI:
             # Check connections to other claims through this entity
             if entity in self.graph:
                 neighbors = list(self.graph.neighbors(entity))
-                claim_neighbors = [n for n in neighbors if self.graph.nodes[n].get('type') == 'claim']
+                claim_neighbors = [n for n in neighbors if self.graph.nodes[n].get('node_type') == 'claim']
                 
                 if len(claim_neighbors) > 1:
                     analysis['direct_connections'].append({
@@ -349,7 +349,7 @@ class HiddenLinkAI:
         
         for node in nodes:
             node_data = self.graph.nodes[node]
-            node_type = node_data.get('type', 'unknown')
+            node_type = node_data.get('node_type', 'unknown')
             
             analysis['entity_types'][node_type] += 1
             
@@ -447,8 +447,8 @@ class HiddenLinkAI:
         return {
             'total_nodes': len(self.graph.nodes),
             'total_edges': len(self.graph.edges),
-            'claim_nodes': len([n for n, data in self.graph.nodes(data=True) if data.get('type') == 'claim']),
-            'entity_nodes': len([n for n, data in self.graph.nodes(data=True) if data.get('type') != 'claim']),
+            'claim_nodes': len([n for n, data in self.graph.nodes(data=True) if data.get('node_type') == 'claim']),
+            'entity_nodes': len([n for n, data in self.graph.nodes(data=True) if data.get('node_type') != 'claim']),
             'known_fraud_nodes': len([n for n, data in self.graph.nodes(data=True) if data.get('known_fraud', False)]),
             'average_degree': sum(dict(self.graph.degree()).values()) / len(self.graph.nodes) if self.graph.nodes else 0
         }
@@ -471,7 +471,7 @@ class HiddenLinkAI:
             similar_claims = []
             
             for node, data in self.graph.nodes(data=True):
-                if data.get('type') == 'claim' and node != claim_data.get('claim_id'):
+                if data.get('node_type') == 'claim' and node != claim_data.get('claim_id'):
                     # Calculate similarity based on shared entities
                     claim_entities = set(self.graph.neighbors(node))
                     shared_entities = claim_entities.intersection(all_entities)
