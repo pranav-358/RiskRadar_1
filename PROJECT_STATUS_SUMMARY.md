@@ -97,7 +97,7 @@ RiskRadar is an AI-powered insurance fraud detection system that uses:
 ---
 
 ### **3. Analysis Button Shows JSON** ✅ FIXED
-**Commit**: `82908dd` (this session)
+**Commit**: `82908dd`
 
 **Problem**:
 - When clicking "Start Analysis" button
@@ -117,6 +117,27 @@ RiskRadar is an AI-powered insurance fraud detection system that uses:
 - `app/admin/templates/admin/claim_analysis.html`
 
 **Documentation**: `ANALYSIS_BUTTON_FIX.md`
+
+---
+
+### **4. Network Analysis Error** ✅ FIXED
+**Commit**: `a91b43d` (this session)
+
+**Problem**:
+- Network analysis failed with error: "networkx.classes.graph.Graph.add_node() got multiple values for keyword argument 'type'"
+- Risk score defaulted to 50 (fallback)
+- No meaningful network analysis results
+
+**Solution**:
+- Renamed node attribute from `type` to `node_type` to avoid conflict
+- Renamed claim type attribute to `claim_type` for clarity
+- Updated all 6 references throughout the file
+- NetworkX graph operations now work correctly
+
+**Files Modified**:
+- `app/ai_models/hidden_link.py`
+
+**Documentation**: `NETWORK_ANALYSIS_BUG_FIX.md`
 
 ---
 
@@ -368,9 +389,11 @@ RiskRadar/
 ## 🔄 **Git History**
 
 ### **Recent Commits**
-1. `82908dd` - Fix analysis button showing JSON (this session)
-2. `da1d2d3` - OCR improvements (earlier session)
-3. Previous commits - Image upload fix, CSRF fix, etc.
+1. `a91b43d` - Fix NetworkX 'type' keyword argument conflict (this session)
+2. `82908dd` - Fix analysis button showing JSON (this session)
+3. `e76add9` - Add comprehensive documentation for demo preparation (this session)
+4. `da1d2d3` - OCR improvements (earlier session)
+5. Previous commits - Image upload fix, CSRF fix, etc.
 
 ### **Branches**
 - `main` - Production branch (deployed to Hugging Face)
@@ -469,9 +492,10 @@ RiskRadar/
 1. ✅ Fixed image upload errors
 2. ✅ Improved OCR extraction (2x better)
 3. ✅ Fixed analysis button JSON display
-4. ✅ Created comprehensive documentation
-5. ✅ Prepared demo testing checklist
-6. ✅ System is production-ready
+4. ✅ Fixed network analysis NetworkX error
+5. ✅ Created comprehensive documentation
+6. ✅ Prepared demo testing checklist
+7. ✅ System is production-ready
 
 ### **Current Status**
 - ✅ All critical bugs fixed
