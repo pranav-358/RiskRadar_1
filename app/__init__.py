@@ -37,17 +37,18 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static/uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
     
-    # Session configuration for production
-    app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
+    # Session configuration for Hugging Face iframe
+    app.config['SESSION_COOKIE_SECURE'] = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
+    app.config['SESSION_COOKIE_SAMESITE'] = None  # Allow cross-site cookies for iframe
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600
     app.config['SESSION_TYPE'] = 'filesystem'
     
     # Remember me configuration
-    app.config['REMEMBER_COOKIE_DURATION'] = 86400  # 1 day
+    app.config['REMEMBER_COOKIE_DURATION'] = 86400
     app.config['REMEMBER_COOKIE_SECURE'] = False
     app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+    app.config['REMEMBER_COOKIE_SAMESITE'] = None  # Allow cross-site cookies for iframe
     
     # WTF CSRF configuration for Hugging Face Spaces
     # DISABLE CSRF for Hugging Face iframe compatibility

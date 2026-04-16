@@ -10,6 +10,16 @@ from app.main import main_bp
 @main_bp.route('/')
 def index():
     """Home page"""
+    # Check if running in iframe (Hugging Face embeds in iframe)
+    # If in iframe, show redirect page
+    from flask import request
+    
+    # Detect if in iframe by checking referer
+    referer = request.headers.get('Referer', '')
+    if 'huggingface.co/spaces/' in referer:
+        # User is viewing through HF iframe, show redirect page
+        return render_template('iframe_redirect.html')
+    
     if current_user.is_authenticated:
         if current_user.role == 'user':
             return redirect(url_for('user.dashboard'))
