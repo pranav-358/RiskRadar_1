@@ -106,20 +106,26 @@ def new_claim():
             if files and files[0].filename:  # Check if files were uploaded
                 for file in files:
                     if file and file.filename:
-                        file_info = save_uploaded_file(file, claim.id)
-                        
-                        document = Document(
-                            claim_id=claim.id,
-                            document_type=form.document_type.data if form.document_type.data else 'other',
-                            original_filename=file_info['original_name'],
-                            file_path=file_info['file_path'],
-                            file_size=file_info['size'],
-                            mime_type=file_info['mime_type'],
-                            upload_date=datetime.utcnow()
-                        )
-                        
-                        db.session.add(document)
-                        current_app.logger.info(f"Document added: {file_info['original_name']}")
+                        try:
+                            current_app.logger.info(f"Processing file upload: {file.filename}")
+                            file_info = save_uploaded_file(file, claim.id)
+                            
+                            document = Document(
+                                claim_id=claim.id,
+                                document_type=form.document_type.data if form.document_type.data else 'other',
+                                original_filename=file_info['original_name'],
+                                file_path=file_info['file_path'],
+                                file_size=file_info['size'],
+                                mime_type=file_info['mime_type'],
+                                upload_date=datetime.utcnow()
+                            )
+                            
+                            db.session.add(document)
+                            current_app.logger.info(f"Document added successfully: {file_info['original_name']}")
+                        except Exception as file_error:
+                            current_app.logger.error(f"Error processing file {file.filename}: {str(file_error)}")
+                            # Continue with other files even if one fails
+                            flash(f'Warning: Could not process file {file.filename}', 'warning')
             
             db.session.commit()
             current_app.logger.info("Claim committed to database successfully")

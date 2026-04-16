@@ -37,6 +37,14 @@ def save_uploaded_file(file, claim_id):
     Returns:
         dict: File information including saved path
     """
+    import time
+    
+    # Variables to track file info
+    file_path = None
+    file_size = 0
+    original_filename = "unknown"
+    unique_filename = "unknown"
+    
     try:
         # Create claim directory if it doesn't exist
         upload_folder = current_app.config['UPLOAD_FOLDER']
@@ -48,23 +56,98 @@ def save_uploaded_file(file, claim_id):
         file_extension = original_filename.rsplit('.', 1)[1].lower() if '.' in original_filename else ''
         unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
         
+        # Reset file pointer to beginning before saving
+        file.seek(0)
+        
+        # Read file content into memory first
+        file_content = file.read()
+        current_app.logger.info(f"Read {len(file_content)} bytes from {original_filename}")
+        
         # Save file
         file_path = os.path.join(claim_dir, unique_filename)
-        file.save(file_path)
+        with open(file_path, 'wb') as f:
+            f.write(file_content)
+            f.flush()
+            os.fsync(f.fileno())  # Force write to disk
+        
+        current_app.logger.info(f"File saved to {file_path}, size: {os.path.getsize(file_path)} bytes")
+        
+        # Small delay to ensure file system has caught up
+        time.sleep(0.1)
+        
+        # Verify file exists and has content
+        if not os.path.exists(file_path):
+            raise Exception("File was not saved - file does not exist")
+        
+        file_size = os.path.getsize(file_path)
+        if file_size == 0:
+            raise Exception("File was not saved properly - file is empty")
+        
+        if file_size != len(file_content):
+            raise Exception(f"File size mismatch: wrote {len(file_content)} bytes but file is {file_size} bytes")
+        
+        # FILE IS SAVED SUCCESSFULLY AT THIS POINT
+        # Everything below is optional (thumbnail creation)
         
         # Get file type using magic
-        file_type = magic.from_file(file_path, mime=True)
-        is_image = file_type.startswith('image/')
-        is_pdf = file_type == 'application/pdf'
+        file_type = 'application/octet-stream'
+        is_image = False
+        is_pdf = False
         
-        # Create thumbnail for images
+        try:
+            file_type = magic.from_file(file_path, mime=True)
+            current_app.logger.info(f"File type detected: {file_type}")
+            is_image = file_type.startswith('image/')
+            is_pdf = file_type == 'application/pdf'
+        except Exception as magic_error:
+            current_app.logger.warning(f"Could not detect file type: {str(magic_error)}")
+        
+        # Validate image file before creating thumbnail
         thumbnail_path = None
         if is_image:
-            thumbnail_path = os.path.join(claim_dir, f"thumb_{unique_filename}")
-            with Image.open(file_path) as img:
-                img.thumbnail((200, 200))
-                img.save(thumbnail_path, format=img.format if img.format else 'JPEG')
+            # First, try to validate the image file
+            try:
+                current_app.logger.info(f"Validating image file: {unique_filename}")
+                with Image.open(file_path) as test_img:
+                    test_img.verify()  # Verify it's a valid image
+                current_app.logger.info(f"Image validation successful")
+            except Exception as validation_error:
+                current_app.logger.warning(f"Image validation failed for {unique_filename}: {str(validation_error)}")
+                # If validation fails, treat as non-image file
+                is_image = False
+                file_type = 'application/octet-stream'
         
+        # Create thumbnail for validated images only
+        if is_image:
+            try:
+                current_app.logger.info(f"Attempting to create thumbnail for {unique_filename}")
+                thumbnail_path = os.path.join(claim_dir, f"thumb_{unique_filename}")
+                
+                # Re-open the image for thumbnail creation (verify() closes the file)
+                with Image.open(file_path) as img:
+                    current_app.logger.info(f"Image opened successfully: format={img.format}, mode={img.mode}, size={img.size}")
+                    
+                    # Convert RGBA to RGB if necessary (for JPEG compatibility)
+                    if img.mode in ('RGBA', 'LA', 'P'):
+                        current_app.logger.info(f"Converting image from {img.mode} to RGB")
+                        rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                        if img.mode == 'P':
+                            img = img.convert('RGBA')
+                        rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                        img = rgb_img
+                    
+                    img.thumbnail((200, 200), Image.Resampling.LANCZOS)
+                    
+                    # Save thumbnail as JPEG for consistency
+                    img.save(thumbnail_path, format='JPEG', quality=85)
+                    
+                current_app.logger.info(f"Thumbnail created successfully: {thumbnail_path}")
+            except Exception as thumb_error:
+                current_app.logger.warning(f"Could not create thumbnail for {unique_filename}: {str(thumb_error)}")
+                # Don't fail the upload if thumbnail creation fails
+                thumbnail_path = None
+        
+        # Return success - file was saved even if thumbnail failed
         return {
             'original_name': original_filename,
             'saved_name': unique_filename,
@@ -73,10 +156,30 @@ def save_uploaded_file(file, claim_id):
             'file_type': 'image' if is_image else 'pdf' if is_pdf else 'other',
             'mime_type': file_type,
             'upload_time': datetime.now().isoformat(),
-            'size': os.path.getsize(file_path)
+            'size': file_size
         }
         
     except Exception as e:
+        # Only raise exception if file saving failed (not thumbnail creation)
+        current_app.logger.error(f"CRITICAL: Error saving file {original_filename}: {str(e)}")
+        import traceback
+        current_app.logger.error(traceback.format_exc())
+        
+        # If file was saved but something else failed, return partial success
+        if file_path and os.path.exists(file_path) and file_size > 0:
+            current_app.logger.warning(f"File saved but post-processing failed. Returning partial success.")
+            return {
+                'original_name': original_filename,
+                'saved_name': unique_filename,
+                'file_path': file_path,
+                'thumbnail_path': None,
+                'file_type': 'other',
+                'mime_type': 'application/octet-stream',
+                'upload_time': datetime.now().isoformat(),
+                'size': file_size
+            }
+        
+        # Only raise if file saving actually failed
         raise Exception(f"Error saving file: {str(e)}")
 
 def cleanup_file(file_path):
