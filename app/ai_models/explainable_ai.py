@@ -31,12 +31,16 @@ class ExplainableAI:
         Args:
             claim_data (dict): Claim data
             prediction_score (float): Prediction score (0-100)
-            feature_weights (dict): Feature importance weights
+            feature_weights (dict): Feature importance weights (can be empty)
             
         Returns:
             dict: Explanation results
         """
         try:
+            # If no feature weights provided, generate default weights based on analysis results
+            if not feature_weights or len(feature_weights) == 0:
+                feature_weights = self._generate_default_feature_weights(claim_data)
+            
             # Generate feature-based explanation
             feature_explanation = self._explain_by_features(claim_data, feature_weights)
             
@@ -60,10 +64,12 @@ class ExplainableAI:
             
         except Exception as e:
             logger.error(f"Error generating explanation: {str(e)}")
+            # Return a basic explanation even if there's an error
             return {
                 "prediction_score": prediction_score,
                 "error": str(e),
-                "summary": "Unable to generate detailed explanation due to technical error"
+                "risk_factors": self._identify_risk_factors(claim_data, {}),
+                "summary": self._generate_summary(prediction_score, self._identify_risk_factors(claim_data, {}))
             }
     
     def _explain_by_features(self, claim_data, feature_weights):
@@ -91,6 +97,39 @@ class ExplainableAI:
         
         return explanations
     
+    def _generate_default_feature_weights(self, claim_data):
+        """
+        Generate default feature weights based on available data
+        
+        Args:
+            claim_data (dict): Claim data
+            
+        Returns:
+            dict: Default feature importance weights
+        """
+        weights = {}
+        
+        # Assign weights based on what data is available
+        if 'document_verification_score' in claim_data:
+            weights['document_verification_score'] = 0.25
+        
+        if 'behavioral_anomaly_score' in claim_data:
+            weights['behavioral_anomaly_score'] = 0.20
+        
+        if 'hidden_link_score' in claim_data:
+            weights['hidden_link_score'] = 0.20
+        
+        if 'claim_amount' in claim_data:
+            weights['claim_amount'] = 0.15
+        
+        if 'number_of_previous_claims' in claim_data:
+            weights['number_of_previous_claims'] = 0.10
+        
+        if 'age_of_policy' in claim_data:
+            weights['age_of_policy'] = 0.10
+        
+        return weights
+    
     def _get_feature_explanation(self, feature, value, weight):
         """
         Get explanation for a specific feature
@@ -103,48 +142,107 @@ class ExplainableAI:
         Returns:
             dict: Feature explanation
         """
+        # Handle None values
+        if value is None:
+            return None
+        
         explanations = {
             'claim_amount': {
                 'high': lambda v: f"High claim amount (₹{v:,.2f}) significantly increases fraud risk",
                 'medium': lambda v: f"Moderate claim amount (₹{v:,.2f}) contributes to risk",
                 'low': lambda v: f"Low claim amount (₹{v:,.2f}) reduces fraud risk"
             },
-            'claim_frequency': {
-                'high': lambda v: f"High claim frequency ({v:.2f}/year) suggests potential abuse",
-                'medium': lambda v: f"Elevated claim frequency ({v:.2f}/year) noted",
-                'low': lambda v: f"Normal claim frequency ({v:.2f}/year)"
-            },
-            'time_since_last_claim': {
-                'high': lambda v: f"Very recent previous claim ({v} days ago) is suspicious",
-                'medium': lambda v: f"Recent claim history ({v} days since last claim)",
-                'low': lambda v: f"Normal time between claims ({v} days)"
-            },
             'document_verification_score': {
-                'high': lambda v: f"Document verification issues (score: {v}/100) increase risk",
-                'medium': lambda v: f"Some document concerns (score: {v}/100)",
-                'low': lambda v: f"Good document authenticity (score: {v}/100)"
+                'high': lambda v: f"Document verification issues (score: {v:.1f}/100) increase risk",
+                'medium': lambda v: f"Some document concerns (score: {v:.1f}/100)",
+                'low': lambda v: f"Good document authenticity (score: {v:.1f}/100)"
+            },
+            'behavioral_anomaly_score': {
+                'high': lambda v: f"Behavioral analysis shows high risk patterns (score: {v:.1f}/100)",
+                'medium': lambda v: f"Some behavioral anomalies detected (score: {v:.1f}/100)",
+                'low': lambda v: f"Normal behavioral patterns (score: {v:.1f}/100)"
+            },
+            'hidden_link_score': {
+                'high': lambda v: f"Suspicious network connections detected (score: {v:.1f}/100)",
+                'medium': lambda v: f"Some network connections noted (score: {v:.1f}/100)",
+                'low': lambda v: f"No suspicious connections (score: {v:.1f}/100)"
+            },
+            'number_of_previous_claims': {
+                'high': lambda v: f"High number of previous claims ({int(v)}) suggests potential abuse",
+                'medium': lambda v: f"Elevated claim frequency ({int(v)} previous claims)",
+                'low': lambda v: f"Normal claim history ({int(v)} previous claims)"
+            },
+            'age_of_policy': {
+                'high': lambda v: f"Very new policy ({int(v)} days old) is suspicious",
+                'medium': lambda v: f"Recent policy ({int(v)} days old)",
+                'low': lambda v: f"Established policy ({int(v)} days old)"
             }
         }
         
         if feature not in explanations:
-            return None
-        
-        # Determine risk level based on value and weight
-        if weight > 0.2:  # High importance
-            risk_level = 'high'
-        elif weight > 0.1:  # Medium importance
-            risk_level = 'medium'
-        else:
-            risk_level = 'low'
-        
-        if risk_level in explanations[feature]:
+            # Generic explanation for unknown features
             return {
                 'feature': feature,
                 'value': value,
                 'importance': weight,
-                'explanation': explanations[feature][risk_level](value),
-                'risk_level': risk_level
+                'explanation': f"{feature.replace('_', ' ').title()}: {value}",
+                'risk_level': 'medium' if weight > 0.15 else 'low'
             }
+        
+        # Determine risk level based on value and weight
+        try:
+            # Convert value to float for comparison
+            numeric_value = float(value) if not isinstance(value, (int, float)) else value
+            
+            # Determine risk level based on feature type and value
+            if feature == 'claim_amount':
+                if numeric_value > 500000:
+                    risk_level = 'high'
+                elif numeric_value > 100000:
+                    risk_level = 'medium'
+                else:
+                    risk_level = 'low'
+            elif feature in ['document_verification_score']:
+                if numeric_value < 60:
+                    risk_level = 'high'
+                elif numeric_value < 80:
+                    risk_level = 'medium'
+                else:
+                    risk_level = 'low'
+            elif feature in ['behavioral_anomaly_score', 'hidden_link_score']:
+                if numeric_value > 70:
+                    risk_level = 'high'
+                elif numeric_value > 50:
+                    risk_level = 'medium'
+                else:
+                    risk_level = 'low'
+            elif feature == 'number_of_previous_claims':
+                if numeric_value > 5:
+                    risk_level = 'high'
+                elif numeric_value > 2:
+                    risk_level = 'medium'
+                else:
+                    risk_level = 'low'
+            elif feature == 'age_of_policy':
+                if numeric_value < 30:
+                    risk_level = 'high'
+                elif numeric_value < 90:
+                    risk_level = 'medium'
+                else:
+                    risk_level = 'low'
+            else:
+                risk_level = 'medium' if weight > 0.15 else 'low'
+            
+            if risk_level in explanations[feature]:
+                return {
+                    'feature': feature,
+                    'value': value,
+                    'importance': weight,
+                    'explanation': explanations[feature][risk_level](numeric_value),
+                    'risk_level': risk_level
+                }
+        except (ValueError, TypeError):
+            pass
         
         return None
     
@@ -210,42 +308,92 @@ class ExplainableAI:
         risk_factors = []
         
         # Check amount-based risks
-        if claim_data.get('claim_amount', 0) > 1000000:
+        claim_amount = claim_data.get('claim_amount', 0)
+        if claim_amount > 1000000:
             risk_factors.append({
                 'factor': 'extremely_high_amount',
-                'description': 'Claim amount over ₹1,000,000',
+                'description': f'Claim amount over ₹10,00,000 (₹{claim_amount:,.0f})',
                 'severity': 'high'
             })
-        
-        # Check frequency risks
-        if claim_data.get('claim_frequency', 0) > 5:
+        elif claim_amount > 500000:
             risk_factors.append({
-                'factor': 'very_high_frequency',
-                'description': 'More than 5 claims per year',
-                'severity': 'high'
+                'factor': 'high_amount',
+                'description': f'Claim amount over ₹5,00,000 (₹{claim_amount:,.0f})',
+                'severity': 'medium'
             })
         
-        # Check document risks
-        if claim_data.get('document_verification_score', 100) < 60:
+        # Check document verification risks
+        doc_score = claim_data.get('document_verification_score', 100)
+        if doc_score < 60:
             risk_factors.append({
                 'factor': 'poor_document_quality',
-                'description': 'Document verification score below 60',
+                'description': f'Document verification score below 60 ({doc_score:.1f}/100)',
                 'severity': 'high'
+            })
+        elif doc_score < 80:
+            risk_factors.append({
+                'factor': 'moderate_document_concerns',
+                'description': f'Document verification score below 80 ({doc_score:.1f}/100)',
+                'severity': 'medium'
             })
         
         # Check behavioral risks
-        if claim_data.get('behavioral_risk_score', 50) > 75:
+        behavioral_score = claim_data.get('behavioral_anomaly_score', 50)
+        if behavioral_score > 75:
             risk_factors.append({
                 'factor': 'suspicious_behavior',
-                'description': 'Behavioral analysis indicates high risk',
+                'description': f'Behavioral analysis indicates high risk ({behavioral_score:.1f}/100)',
+                'severity': 'high'
+            })
+        elif behavioral_score > 60:
+            risk_factors.append({
+                'factor': 'elevated_behavioral_risk',
+                'description': f'Behavioral analysis shows some concerns ({behavioral_score:.1f}/100)',
                 'severity': 'medium'
             })
         
         # Check connection risks
-        if claim_data.get('connection_risk_score', 50) > 70:
+        connection_score = claim_data.get('hidden_link_score', 50)
+        if connection_score > 70:
             risk_factors.append({
                 'factor': 'suspicious_connections',
-                'description': 'Network analysis shows risky connections',
+                'description': f'Network analysis shows risky connections ({connection_score:.1f}/100)',
+                'severity': 'high'
+            })
+        elif connection_score > 55:
+            risk_factors.append({
+                'factor': 'network_concerns',
+                'description': f'Some network connections detected ({connection_score:.1f}/100)',
+                'severity': 'medium'
+            })
+        
+        # Check claim frequency
+        num_claims = claim_data.get('number_of_previous_claims', 0)
+        if num_claims > 5:
+            risk_factors.append({
+                'factor': 'very_high_frequency',
+                'description': f'More than 5 previous claims ({num_claims} claims)',
+                'severity': 'high'
+            })
+        elif num_claims > 3:
+            risk_factors.append({
+                'factor': 'elevated_frequency',
+                'description': f'Multiple previous claims ({num_claims} claims)',
+                'severity': 'medium'
+            })
+        
+        # Check policy age
+        policy_age = claim_data.get('age_of_policy', 365)
+        if policy_age < 30:
+            risk_factors.append({
+                'factor': 'very_new_policy',
+                'description': f'Policy is very new ({policy_age} days old)',
+                'severity': 'high'
+            })
+        elif policy_age < 90:
+            risk_factors.append({
+                'factor': 'new_policy',
+                'description': f'Policy is relatively new ({policy_age} days old)',
                 'severity': 'medium'
             })
         
