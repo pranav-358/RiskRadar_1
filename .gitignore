@@ -115,9 +115,10 @@ desktop.ini
 # *.md
 # !README.md
 
-# Training Data (Optional - uncomment if models are too large)
-# training_data/models/*.joblib
-# training_data/models/*.pkl
+# Training Data (Models will be trained during Docker build)
+training_data/models/*.joblib
+training_data/models/*.pkl
+training_data/models/scaler.joblib
 
 # Backup Files
 *.bak
