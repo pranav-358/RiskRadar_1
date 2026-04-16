@@ -227,4 +227,6 @@ def create_user(username, email, password, role, first_name, last_name):
         print(f"Password: {password}")
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use port 7860 for Hugging Face Spaces, fallback to 5000 for local
+    port = int(os.environ.get('PORT', 7860))
+    app.run(debug=False, host='0.0.0.0', port=port)
