@@ -2,6 +2,9 @@
 
 echo "===== RiskRadar Startup ====="
 
+# Create instance directory for database
+mkdir -p instance
+
 # Initialize database and create default users
 echo "Initializing database..."
 python << EOF
@@ -32,6 +35,8 @@ with app.app_context():
         admin_user.set_password('admin123')
         db.session.add(admin_user)
         print("✓ Created admin user: admin@riskradar.com / admin123")
+    else:
+        print("✓ Admin user already exists")
     
     # Create default regular user
     user = User.query.filter_by(username='user').first()
@@ -47,6 +52,8 @@ with app.app_context():
         user.set_password('user123')
         db.session.add(user)
         print("✓ Created demo user: user@example.com / user123")
+    else:
+        print("✓ Demo user already exists")
     
     # Create default system configuration
     default_config = {
@@ -64,6 +71,7 @@ with app.app_context():
     
     db.session.commit()
     print("✓ Database initialization complete!")
+    print("✓ Total users:", User.query.count())
 
 EOF
 
@@ -74,5 +82,5 @@ if [ ! -f "training_data/models/gradient_boosting.joblib" ]; then
 fi
 
 # Start the Flask application
-echo "Starting Flask application..."
+echo "Starting Flask application on port 7860..."
 python run.py
