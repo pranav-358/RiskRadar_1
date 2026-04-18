@@ -1,17 +1,17 @@
 /* Enhanced RiskRadar UI - Modern Design System */
 
-/* ===== CSS VARIABLES ===== */
+/* ===== CSS VARIABLES - NEW TEAL THEME ===== */
 :root {
-    /* Primary Colors */
-    --primary-color: #2563eb;
-    --primary-light: #3b82f6;
-    --primary-dark: #1d4ed8;
-    --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    /* Primary Colors - Teal Theme */
+    --primary-color: #0d7377;
+    --primary-light: #14919b;
+    --primary-dark: #0a5a61;
+    --primary-gradient: linear-gradient(135deg, #0d7377 0%, #1a9b8e 100%);
     
     /* Secondary Colors */
-    --secondary-color: #64748b;
-    --secondary-light: #94a3b8;
-    --secondary-dark: #475569;
+    --secondary-color: #1a9b8e;
+    --secondary-light: #2dd4bf;
+    --secondary-dark: #0f7a6f;
     
     /* Status Colors */
     --success-color: #10b981;
