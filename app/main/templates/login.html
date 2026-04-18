@@ -4,109 +4,252 @@
 
 {% block content %}
 <style>
-    /* Full height wrapper to vertically center the form */
+    /* Enhanced Login Page Styling */
     .login-wrapper {
         position: relative;
-        min-height: calc(100vh - 150px); /* Adjusts for navbar */
+        min-height: calc(100vh - 150px);
         display: flex;
         align-items: center;
         padding: 3rem 0;
         overflow: hidden;
-        background-color: #f8faff;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
-    /* Abstract Ambient Background Elements */
-    .bg-glow-1 {
+    /* Animated Background Elements */
+    .bg-shape-1, .bg-shape-2, .bg-shape-3 {
         position: absolute;
-        top: -10%;
-        left: -10%;
-        width: 50vw;
-        height: 50vw;
-        background: radial-gradient(circle, rgba(13,110,253,0.08) 0%, rgba(13,110,253,0) 70%);
         border-radius: 50%;
-        z-index: 0;
-        pointer-events: none;
+        background: rgba(255, 255, 255, 0.1);
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .bg-shape-1 {
+        width: 300px;
+        height: 300px;
+        top: -150px;
+        left: -150px;
+        animation-delay: 0s;
+    }
+    
+    .bg-shape-2 {
+        width: 200px;
+        height: 200px;
+        top: 20%;
+        right: -100px;
+        animation-delay: 2s;
+    }
+    
+    .bg-shape-3 {
+        width: 150px;
+        height: 150px;
+        bottom: -75px;
+        left: 20%;
+        animation-delay: 4s;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        33% { transform: translateY(-20px) rotate(120deg); }
+        66% { transform: translateY(10px) rotate(240deg); }
     }
 
-    .bg-glow-2 {
-        position: absolute;
-        bottom: -20%;
-        right: -10%;
-        width: 60vw;
-        height: 60vw;
-        background: radial-gradient(circle, rgba(13,202,240,0.08) 0%, rgba(13,202,240,0) 70%);
-        border-radius: 50%;
-        z-index: 0;
-        pointer-events: none;
-    }
-
-    /* Glassmorphism Card Styling */
+    /* Enhanced Glassmorphism Card */
     .login-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
         z-index: 1;
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        animation: shimmer 3s linear infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
     }
 
     .login-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px);
+        box-shadow: 0 35px 60px rgba(0, 0, 0, 0.2);
     }
 
-    /* Floating Input Customization */
+    /* Enhanced Form Controls */
     .form-floating > .form-control {
-        border: 1px solid #dee2e6;
-        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 15px;
         background-color: rgba(255, 255, 255, 0.9);
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
     }
     
     .form-floating > .form-control:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
         background-color: #ffffff;
+        transform: scale(1.02);
     }
 
-    /* Transparent background for floating label fix */
-    .form-floating > .form-control:focus ~ label::after,
-    .form-floating > .form-control:not(:placeholder-shown) ~ label::after {
-        background-color: transparent !important;
+    .form-floating > label {
+        padding: 1rem 1.25rem;
+        font-weight: 500;
+        color: #6c757d;
     }
 
-    /* Animated Gradient Button */
-    .btn-gradient {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-        background-size: 200% auto;
-        border: none;
-        transition: all 0.4s ease;
-    }
-
-    .btn-gradient:hover {
-        background-position: right center;
-        box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
-        transform: translateY(-2px);
-    }
-
-    /* Icon Header */
+    /* Enhanced Icon Header */
     .icon-wrapper {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 202, 240, 0.1) 100%);
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        margin-bottom: 1.5rem;
-        box-shadow: inset 0 0 0 1px rgba(13, 110, 253, 0.2);
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        animation: pulse-glow 3s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% { 
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transform: scale(1);
+        }
+        50% { 
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+            transform: scale(1.05);
+        }
+    }
+
+    .icon-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        background: linear-gradient(45deg, #667eea, #764ba2) border-box;
+        mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        animation: rotate 4s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Enhanced Gradient Button */
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-size: 200% auto;
+        border: none;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .btn-gradient::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s;
+    }
+
+    .btn-gradient:hover::before {
+        left: 100%;
+    }
+
+    .btn-gradient:hover {
+        background-position: right center;
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        transform: translateY(-3px);
+    }
+
+    /* Enhanced Remember Me Checkbox */
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .form-check-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+
+    /* Enhanced Links */
+    .enhanced-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .enhanced-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 0.3s ease;
+    }
+    
+    .enhanced-link:hover::after {
+        width: 100%;
+    }
+    
+    .enhanced-link:hover {
+        color: #764ba2;
+        transform: translateY(-1px);
+    }
+
+    /* Security Badge Enhancement */
+    .security-badge {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.2));
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        backdrop-filter: blur(10px);
+        animation: pulse-security 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-security {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
     }
 
     .letter-spacing-1 { letter-spacing: 1px; }
 </style>
 
 <div class="login-wrapper">
-    <div class="bg-glow-1"></div>
-    <div class="bg-glow-2"></div>
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+    <div class="bg-shape-3"></div>
 
     <div class="container position-relative z-1">
         <div class="row justify-content-center">
@@ -117,73 +260,85 @@
                         
                         <div class="text-center mb-4">
                             <div class="icon-wrapper">
-                                <i class="fas fa-fingerprint fa-2x text-primary"></i>
+                                <i class="fas fa-shield-alt fa-3x text-primary"></i>
                             </div>
-                            <h2 class="fw-bolder text-dark mb-1">Welcome Back</h2>
-                            <p class="text-secondary small">Authenticate to access the RiskRadar portal</p>
+                            <h2 class="fw-bolder text-dark mb-2">Welcome Back</h2>
+                            <p class="text-secondary">Secure access to RiskRadar AI platform</p>
                         </div>
                         
                         <form action="" method="POST">
                             {{ form.hidden_tag() }}
                             
-                            <div class="form-floating mb-3">
+                            <div class="form-floating mb-4">
                                 {{ form.username(class="form-control", id="username", placeholder="Username", autocomplete="username") }}
                                 <label for="username" class="text-muted"><i class="fas fa-user-circle me-2"></i>Username</label>
                                 {% if form.username.errors %}
-                                    <div class="text-danger small mt-1">
+                                    <div class="text-danger small mt-2">
                                         {% for error in form.username.errors %}
-                                            <div>{{ error }}</div>
+                                            <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
                                         {% endfor %}
                                     </div>
                                 {% endif %}
                             </div>
                             
-                            <div class="form-floating mb-3">
+                            <div class="form-floating mb-4">
                                 {{ form.password(class="form-control", id="password", placeholder="Password", autocomplete="current-password") }}
                                 <label for="password" class="text-muted"><i class="fas fa-lock me-2"></i>Password</label>
                                 {% if form.password.errors %}
-                                    <div class="text-danger small mt-1">
+                                    <div class="text-danger small mt-2">
                                         {% for error in form.password.errors %}
-                                            <div>{{ error }}</div>
+                                            <div><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</div>
                                         {% endfor %}
                                     </div>
                                 {% endif %}
                             </div>
                             
-                            <div class="d-flex justify-content-between align-items-center mb-4 px-1">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div class="form-check">
-                                    {{ form.remember_me(class="form-check-input border-secondary", id="rememberMe") }}
-                                    <label class="form-check-label text-secondary small user-select-none" for="rememberMe">Remember me</label>
+                                    {{ form.remember_me(class="form-check-input", id="rememberMe") }}
+                                    <label class="form-check-label text-secondary fw-medium user-select-none" for="rememberMe">
+                                        <i class="fas fa-memory me-1"></i>Remember me
+                                    </label>
                                 </div>
-                                <a href="#" class="text-primary text-decoration-none small fw-semibold">Forgot password?</a>
+                                <a href="#" class="enhanced-link small">
+                                    <i class="fas fa-key me-1"></i>Forgot password?
+                                </a>
                             </div>
                             
                             <div class="d-grid mb-4">
-                                <button type="submit" class="btn btn-gradient btn-lg text-white fw-bold rounded-pill d-flex justify-content-center align-items-center gap-2">
-                                    Secure Login <i class="fas fa-arrow-right"></i>
+                                <button type="submit" class="btn btn-gradient btn-lg text-white rounded-pill d-flex justify-content-center align-items-center gap-2 py-3">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Secure Login</span>
+                                    <i class="fas fa-arrow-right"></i>
                                 </button>
                             </div>
                         </form>
                         
                         <div class="position-relative text-center mb-4">
                             <hr class="text-secondary opacity-25">
-                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small text-uppercase letter-spacing-1 fw-medium" style="border-radius: 8px;">Network</span>
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small text-uppercase letter-spacing-1 fw-medium" style="border-radius: 8px;">
+                                <i class="fas fa-network-wired me-1"></i>Network Access
+                            </span>
                         </div>
                         
-                        <div class="text-center bg-light rounded-4 p-3 border border-secondary border-opacity-10 transition-all hover-bg-white">
-                            <p class="mb-0 text-secondary small">
-                                Don't have system access? 
-                                <a href="{{ url_for('main.register') }}" class="text-primary fw-bold text-decoration-none ms-1">Request Account</a>
-                            </p>
+                        <div class="text-center bg-light rounded-4 p-4 border border-secondary border-opacity-10">
+                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                <i class="fas fa-user-plus text-primary me-2"></i>
+                                <span class="text-secondary small fw-medium">Need system access?</span>
+                            </div>
+                            <a href="{{ url_for('main.register') }}" class="enhanced-link fw-bold">
+                                Request New Account
+                            </a>
                         </div>
                         
                     </div>
                 </div>
                 
                 <div class="text-center mt-4" data-aos="fade-in" data-aos-delay="400">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fw-medium shadow-sm">
-                        <i class="fas fa-shield-check me-1"></i> AES-256 Encrypted Connection
-                    </span>
+                    <div class="security-badge badge rounded-pill px-4 py-3 fw-medium shadow-sm">
+                        <i class="fas fa-shield-check me-2"></i>
+                        <span>AES-256 Encrypted • SOC 2 Compliant</span>
+                    </div>
                 </div>
                 
             </div>

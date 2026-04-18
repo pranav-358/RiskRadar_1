@@ -39,6 +39,52 @@
     .risk-high { background-color: #dc3545; }
     .risk-medium { background-color: #ffc107; }
     .risk-low { background-color: #198754; }
+    
+    /* Enhanced Activity Scroll Container */
+    .activity-scroll-container {
+        position: relative;
+    }
+    
+    .activity-scroll-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .activity-scroll-container::-webkit-scrollbar-track {
+        background: var(--gray-100);
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    
+    .activity-scroll-container::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        border-radius: 10px;
+        border: 2px solid var(--gray-100);
+        transition: var(--transition);
+    }
+    
+    .activity-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+        transform: scale(1.1);
+    }
+    
+    /* Firefox scrollbar styling */
+    .activity-scroll-container {
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--gray-100);
+    }
+    
+    /* Fade effect at bottom of scroll area */
+    .activity-scroll-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: linear-gradient(transparent, rgba(255, 255, 255, 0.9));
+        pointer-events: none;
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
 </style>
 {% endblock %}
 
@@ -295,26 +341,28 @@
                     </h5>
                     <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-primary">View Logs</a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if recent_logs %}
-                        <div class="timeline">
-                            {% for log in recent_logs %}
-                            <div class="timeline-item">
-                                <div class="timeline-point"></div>
-                                <div class="timeline-content">
-                                    <div class="d-flex justify-content-between">
-                                        <h6 class="mb-0">{{ log.action|replace('_', ' ')|title }}</h6>
-                                        <small class="text-muted">{{ log.timestamp.strftime('%H:%M') }}</small>
+                        <div class="activity-scroll-container" style="max-height: 400px; overflow-y: auto; padding: 1.5rem;">
+                            <div class="timeline">
+                                {% for log in recent_logs %}
+                                <div class="timeline-item">
+                                    <div class="timeline-point"></div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-0">{{ log.action|replace('_', ' ')|title }}</h6>
+                                            <small class="text-muted">{{ log.timestamp.strftime('%H:%M') }}</small>
+                                        </div>
+                                        <small class="text-muted">
+                                            By {{ log.user.username }} • {{ log.timestamp.strftime('%d %b %Y') }}
+                                        </small>
                                     </div>
-                                    <small class="text-muted">
-                                        By {{ log.user.username }} • {{ log.timestamp.strftime('%d %b %Y') }}
-                                    </small>
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
                         </div>
                     {% else %}
-                        <div class="text-center py-3">
+                        <div class="text-center py-5">
                             <i class="fas fa-clock fa-2x text-muted mb-2"></i>
                             <p class="text-muted mb-0">No recent activity</p>
                         </div>
