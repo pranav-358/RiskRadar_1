@@ -4,295 +4,329 @@
 
 {% block extra_css %}
 <style>
+    /* Corporate Deep Teal Theme */
+    :root {
+        --brand-teal: #008080; 
+        --brand-teal-dark: #005959;
+        --brand-teal-light: #e6f2f2;
+    }
+
+    /* THE MAGIC FIX: Forced Layout Grid (1/3 Left, 2/3 Right) */
+    .analysis-layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    @media (max-width: 1200px) {
+        .analysis-layout-grid { grid-template-columns: 1.2fr 1.8fr; gap: 1rem; }
+    }
+    
+    @media (max-width: 991px) {
+        .analysis-layout-grid { grid-template-columns: 1fr; } /* Only stack on true tablets/mobile */
+    }
+
+    /* Modern Minimalist Cards */
     .analysis-section {
         background: white;
         border-radius: 12px;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .panel-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1.25rem 1.5rem;
+        background: #fafbfa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .panel-body {
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e9ecef;
     }
-    
-    .section-header {
-        border-bottom: 2px solid #f8f9fa;
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
+
+    /* Info Label Styling */
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
-    
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .info-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .info-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #212529;
+        text-align: right;
+    }
+
+    /* Risk Meters & Indicators */
     .risk-meter {
-        height: 20px;
-        border-radius: 10px;
+        height: 12px;
+        border-radius: 6px;
         background: linear-gradient(90deg, #198754 0%, #ffc107 50%, #dc3545 100%);
         position: relative;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
     }
     
     .risk-indicator {
         position: absolute;
-        top: -5px;
-        width: 30px;
-        height: 30px;
+        top: -6px;
+        width: 24px;
+        height: 24px;
         background: white;
-        border: 3px solid #0d6efd;
+        border: 3px solid var(--brand-teal-dark);
         border-radius: 50%;
         transform: translateX(-50%);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: left 1s ease-in-out;
+    }
+
+    .risk-score-display {
+        font-size: 4.5rem;
+        line-height: 1;
+        letter-spacing: -2px;
     }
     
     .finding-item {
-        border-left: 4px solid #0d6efd;
-        padding-left: 1rem;
+        border-left: 4px solid var(--brand-teal);
+        background: #fcfdfe;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
         margin-bottom: 1rem;
+        border-top: 1px solid rgba(0,0,0,0.03);
+        border-right: 1px solid rgba(0,0,0,0.03);
+        border-bottom: 1px solid rgba(0,0,0,0.03);
     }
     
-    .finding-high {
-        border-left-color: #dc3545;
-    }
+    .finding-high { border-left-color: #dc3545; background: rgba(220, 53, 69, 0.02); }
+    .finding-medium { border-left-color: #ffc107; background: rgba(255, 193, 7, 0.02); }
+    .finding-low { border-left-color: #198754; background: rgba(25, 135, 84, 0.02); }
+
+    /* Buttons & Inputs */
+    .btn-teal { background-color: var(--brand-teal-dark); color: white; border: none; transition: all 0.2s; }
+    .btn-teal:hover { background-color: #004040; color: white; transform: translateY(-2px); }
+    .btn-outline-teal { border: 1px solid var(--brand-teal); color: var(--brand-teal); background: transparent; transition: all 0.2s; }
+    .btn-outline-teal:hover { background: var(--brand-teal-light); color: var(--brand-teal-dark); transform: translateY(-2px); }
     
-    .finding-medium {
-        border-left-color: #ffc107;
-    }
-    
-    .finding-low {
-        border-left-color: #198754;
+    .form-select:focus, .form-control:focus {
+        border-color: var(--brand-teal);
+        box-shadow: 0 0 0 0.25rem rgba(0, 128, 128, 0.15);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4 px-lg-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <h1 class="h3 fw-bold">Claim Analysis #{{ claim.id }}</h1>
-            <p class="text-muted">Detailed AI analysis of insurance claim</p>
+            <h1 class="h3 fw-bold text-dark mb-1">Claim Analysis #{{ claim.id }}</h1>
+            <p class="text-secondary mb-0">Detailed AI analysis of insurance claim</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('admin.claims_list') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('admin.claims_list') }}" class="btn btn-outline-secondary fw-medium rounded-pill px-4">
                 <i class="fas fa-arrow-left me-2"></i>Back to Claims
             </a>
             {% if current_user.role == 'admin' and claim.status == 'submitted' %}
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignModal">
+            <button type="button" class="btn btn-teal fw-medium rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#assignModal">
                 <i class="fas fa-user-plus me-2"></i>Assign Officer
             </button>
             {% endif %}
         </div>
     </div>
 
-    <div class="row">
-        <!-- Left Column - Claim Info & Documents -->
-        <div class="col-lg-4">
-            <!-- Claim Information -->
+    <div class="analysis-layout-grid">
+        
+        <div>
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Claim Information
-                    </h5>
+                <div class="panel-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-info-circle text-teal me-2"></i>Claim Information
+                    </h6>
                 </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Claimant</label>
-                    </div>
-                    <div class="col-sm-7">
-                        <p class="mb-0">
+                <div class="panel-body">
+                    <div class="info-row">
+                        <span class="info-label">Claimant</span>
+                        <span class="info-value">
                             {% if claim.claimant %}
                                 {{ claim.claimant.first_name }} {{ claim.claimant.last_name }}
                             {% else %}
                                 <span class="text-muted">Unknown</span>
                             {% endif %}
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Policy Number</label>
-                    </div>
-                    <div class="col-sm-7">
-                        <p class="mb-0">{{ claim.policy_number }}</p>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Claim Type</label>
-                    </div>
-                    <div class="col-sm-7">
-                        <p class="mb-0">{{ claim.claim_type|title }}</p>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Amount</label>
-                    </div>
-                    <div class="col-sm-7">
-                        <p class="mb-0">{{ format_currency(claim.amount) }}</p>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Incident Date</label>
-                    </div>
-                    <div class="col-sm-7">
-                        <p class="mb-0">{{ claim.incident_date.strftime('%d %b %Y') }}</p>
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Status</label>
-                    </div>
-                    <div class="col-sm-7">
-                        <span class="badge status-badge" data-status="{{ claim.status }}">
-                            {{ claim.status|replace('_', ' ')|title }}
                         </span>
                     </div>
-                </div>
-                
-                {% if claim.assigned_officer %}
-                <div class="row mb-3">
-                    <div class="col-sm-5">
-                        <label class="form-label fw-semibold">Assigned Officer</label>
+                    <div class="info-row">
+                        <span class="info-label">Policy Number</span>
+                        <span class="info-value">{{ claim.policy_number }}</span>
                     </div>
-                    <div class="col-sm-7">
-                        <p class="mb-0">{{ claim.assigned_officer.first_name }} {{ claim.assigned_officer.last_name }}</p>
+                    <div class="info-row">
+                        <span class="info-label">Claim Type</span>
+                        <span class="info-value">{{ claim.claim_type|title }}</span>
                     </div>
+                    <div class="info-row">
+                        <span class="info-label">Amount</span>
+                        <span class="info-value fw-bold text-teal">{{ format_currency(claim.amount) }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Incident Date</span>
+                        <span class="info-value">{{ claim.incident_date.strftime('%d %b %Y') }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status</span>
+                        <span class="info-value">
+                            <span class="badge status-badge rounded-pill px-2" data-status="{{ claim.status }}">
+                                {{ claim.status|replace('_', ' ')|title }}
+                            </span>
+                        </span>
+                    </div>
+                    {% if claim.assigned_officer %}
+                    <div class="info-row">
+                        <span class="info-label">Assigned Officer</span>
+                        <span class="info-value">{{ claim.assigned_officer.first_name }} {{ claim.assigned_officer.last_name }}</span>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
 
-            <!-- Documents -->
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-file me-2"></i>Supporting Documents
-                    </h5>
+                <div class="panel-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-folder-open text-teal me-2"></i>Supporting Documents
+                    </h6>
                 </div>
-                
-                {% if documents %}
-                    <div class="list-group">
-                        {% for document in documents %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ document.document_type|title }}</h6>
-                                    <small class="text-muted d-block">{{ document.original_filename }}</small>
-                                    {% if document.authenticity_score is not none %}
-                                        <small class="text-muted d-block mt-1">
-                                            Authenticity: {{ "%.1f"|format(document.authenticity_score) }}%
-                                        </small>
-                                    {% endif %}
-                                </div>
-                                <div class="text-end">
-                                    <div class="mb-2">
-                                        {% if document.authenticity_score is not none %}
-                                            {% if document.authenticity_score >= 80 %}
-                                                <span class="badge bg-success">Authentic</span>
-                                            {% elif document.authenticity_score >= 60 %}
-                                                <span class="badge bg-warning">Suspicious</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Tampered</span>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="badge bg-secondary">Pending</span>
-                                        {% endif %}
+                <div class="p-0">
+                    {% if documents %}
+                        <div class="list-group list-group-flush">
+                            {% for document in documents %}
+                            <div class="list-group-item p-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1 pe-2">
+                                        <h6 class="mb-1 fw-bold text-dark fs-6">{{ document.document_type|title }}</h6>
+                                        <small class="text-secondary d-block text-truncate" style="max-width: 200px;">{{ document.original_filename }}</small>
                                     </div>
-                                    <a href="{{ url_for('admin.view_document', document_id=document.id) }}" 
-                                       class="btn btn-sm btn-outline-primary" 
-                                       target="_blank">
-                                        <i class="fas fa-eye me-1"></i>View
-                                    </a>
+                                    <div class="text-end">
+                                        <div class="mb-2">
+                                            {% if document.authenticity_score is not none %}
+                                                {% if document.authenticity_score >= 80 %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2">Auth: {{ "%.0f"|format(document.authenticity_score) }}%</span>
+                                                {% elif document.authenticity_score >= 60 %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-2">Susp: {{ "%.0f"|format(document.authenticity_score) }}%</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2">Tamp: {{ "%.0f"|format(document.authenticity_score) }}%</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-light text-secondary border rounded-pill px-2">Pending</span>
+                                            {% endif %}
+                                        </div>
+                                        <a href="{{ url_for('admin.view_document', document_id=document.id) }}" class="btn btn-sm btn-outline-teal rounded-pill px-3" target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
                                 </div>
+                                {% if document.analysis_results %}
+                                    <div class="mt-2 pt-2 border-top">
+                                        <small class="text-secondary">
+                                            <strong class="text-dark">AI Findings:</strong>
+                                            {% set doc_analysis = document.analysis_results|from_json %}
+                                            {% if doc_analysis.findings %}
+                                                <ul class="mb-0 mt-1 ps-3">
+                                                    {% for finding in doc_analysis.findings[:2] %}
+                                                    <li>{{ finding }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                {% endif %}
                             </div>
-                            {% if document.analysis_results %}
-                                <div class="mt-2 pt-2 border-top">
-                                    <small class="text-muted">
-                                        <strong>AI Analysis:</strong>
-                                        {% set doc_analysis = document.analysis_results|from_json %}
-                                        {% if doc_analysis.findings %}
-                                            <ul class="mb-0 mt-1 ps-3">
-                                                {% for finding in doc_analysis.findings[:3] %}
-                                                <li>{{ finding }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% endif %}
-                                    </small>
-                                </div>
-                            {% endif %}
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-3">
-                        <i class="fas fa-file fa-2x text-muted mb-2"></i>
-                        <p class="text-muted mb-0">No documents uploaded</p>
-                    </div>
-                {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-excel fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0 small">No documents uploaded</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Decision Form -->
             {% if claim.status in ['under_review', 'analyzed'] and current_user.role in ['admin', 'officer'] %}
-            <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-gavel me-2"></i>Make Decision
-                    </h5>
+            <div class="analysis-section bg-light">
+                <div class="panel-header bg-light border-0 pb-0">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-gavel text-teal me-2"></i>Make Decision
+                    </h6>
                 </div>
-                
-                <form method="POST" action="{{ url_for('admin.make_decision', claim_id=claim.id) }}">
-                    {{ decision_form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        {{ decision_form.decision.label(class="form-label fw-semibold") }}
-                        {{ decision_form.decision(class="form-select") }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ decision_form.reason.label(class="form-label fw-semibold") }}
-                        {{ decision_form.reason(class="form-control", rows=3, placeholder="Enter detailed reason for your decision...") }}
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-check me-2"></i>Submit Decision
-                    </button>
-                </form>
+                <div class="panel-body">
+                    <form method="POST" action="{{ url_for('admin.make_decision', claim_id=claim.id) }}">
+                        {{ decision_form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ decision_form.decision.label(class="form-label fw-bold text-dark small") }}
+                            {{ decision_form.decision(class="form-select border-0 shadow-sm") }}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ decision_form.reason.label(class="form-label fw-bold text-dark small") }}
+                            {{ decision_form.reason(class="form-control border-0 shadow-sm", rows=3, placeholder="Enter detailed reason for your decision...") }}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-teal w-100 rounded-pill shadow-sm">
+                            <i class="fas fa-check me-2"></i>Submit Decision
+                        </button>
+                    </form>
+                </div>
             </div>
             {% endif %}
         </div>
 
-        <!-- Right Column - Analysis Results -->
-        <div class="col-lg-8">
-            <!-- Overall Risk Score -->
+        <div>
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Overall Risk Assessment
+                <div class="panel-header">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-chart-line text-teal me-2"></i>Overall Risk Assessment
                     </h5>
                 </div>
                 
-                <div class="text-center mb-4">
+                <div class="panel-body text-center py-5">
                     {% if claim.fraud_score is not none %}
                         {% set risk = format_risk_score(claim.fraud_score) %}
-                        <div class="risk-score-display mb-3">
-                            <span class="display-1 fw-bold text-{{ risk.color }}">{{ risk.score }}</span>
-                            <span class="text-muted fs-4">/100</span>
+                        <div class="mb-3">
+                            <span class="risk-score-display fw-bolder text-{{ risk.color }}">{{ risk.score }}</span>
+                            <span class="text-muted fw-bold fs-4">/100</span>
                         </div>
-                        <span class="badge risk-badge fs-5" data-risk-score="{{ claim.fraud_score }}">
+                        <span class="badge risk-badge fs-6 rounded-pill px-4 py-2 shadow-sm" data-risk-score="{{ claim.fraud_score }}">
                             {{ risk.text }} Risk
                         </span>
                         
-                        <div class="risk-meter mt-4 mx-auto" style="max-width: 400px;">
+                        <div class="risk-meter mt-5 mx-auto" style="max-width: 80%;">
                             <div class="risk-indicator" style="left: {{ claim.fraud_score }}%;"></div>
                         </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-clock fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">Analysis Pending</h5>
-                            <p class="text-muted">This claim is waiting for AI analysis</p>
+                        <div class="text-center py-2">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-robot fa-2x text-teal"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Analysis Pending</h5>
+                            <p class="text-secondary mb-4">This claim is currently waiting for AI processing.</p>
                             {% if current_user.role in ['admin', 'officer'] %}
                             <form id="analysisForm" method="POST" action="{{ url_for('api.analyze_claim', claim_id=claim.id) }}">
-                                <button type="submit" class="btn btn-primary" id="startAnalysisBtn">
+                                <button type="submit" class="btn btn-teal rounded-pill px-4 py-2" id="startAnalysisBtn">
                                     <i class="fas fa-play me-2"></i>Start Analysis
                                 </button>
                             </form>
@@ -302,170 +336,171 @@
                 </div>
             </div>
 
-            <!-- AI Analysis Results -->
             {% if analysis_results %}
-            <!-- Document Verification -->
+            
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-file-contract me-2"></i>Document Verification
-                    </h5>
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-file-contract text-teal me-2"></i>Document Verification
+                    </h6>
                     {% if analysis_results.document_verification.overall_authenticity_score is defined %}
-                    <span class="badge bg-{% if analysis_results.document_verification.overall_authenticity_score >= 80 %}success{% elif analysis_results.document_verification.overall_authenticity_score >= 60 %}warning{% else %}danger{% endif %}">
-                        Score: {{ "%.1f"|format(analysis_results.document_verification.overall_authenticity_score) }}/100
+                    <span class="badge bg-{% if analysis_results.document_verification.overall_authenticity_score >= 80 %}success{% elif analysis_results.document_verification.overall_authenticity_score >= 60 %}warning{% else %}danger{% endif %} rounded-pill px-3">
+                        Score: {{ "%.0f"|format(analysis_results.document_verification.overall_authenticity_score) }}/100
                     </span>
                     {% endif %}
                 </div>
                 
-                {% if analysis_results.document_verification.documents %}
-                    <h6 class="fw-semibold mb-3">Document Analysis:</h6>
-                    {% for doc in analysis_results.document_verification.documents %}
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <strong>{{ doc.original_name }}</strong>
-                                <span class="badge float-end bg-{% if doc.results.authenticity_score >= 80 %}success{% elif doc.results.authenticity_score >= 60 %}warning{% else %}danger{% endif %}">
-                                    {{ "%.1f"|format(doc.results.authenticity_score) }}%
-                                </span>
-                            </div>
-                            <div class="card-body">
-                                {% if doc.results.findings %}
-                                    {% for finding in doc.results.findings %}
-                                    <div class="finding-item {% if '⚠️ CRITICAL' in finding or 'tampered' in finding.lower() %}finding-high{% elif '⚠️' in finding %}finding-medium{% else %}finding-low{% endif %}">
-                                        <p class="mb-2">{{ finding }}</p>
-                                    </div>
-                                    {% endfor %}
-                                {% endif %}
-                                
-                                {% if doc.results.risk_factors %}
-                                    <div class="mt-3">
-                                        <strong class="text-danger">Risk Factors:</strong>
-                                        <ul class="mb-0 mt-2">
-                                            {% for factor in doc.results.risk_factors %}
-                                            <li class="text-{{ 'danger' if factor.severity == 'critical' else 'warning' if factor.severity == 'high' else 'info' }}">
-                                                <strong>{{ factor.type|replace('_', ' ')|title }}:</strong> {{ factor.description }}
-                                                <span class="badge bg-{{ 'danger' if factor.severity == 'critical' else 'warning' if factor.severity == 'high' else 'info' }}">
-                                                    -{{ factor.impact }} points
-                                                </span>
-                                            </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                                {% if doc.results.extracted_text %}
-                                    <div class="mt-3">
-                                        <strong>Extracted Text (first 200 chars):</strong>
-                                        <div class="bg-light p-2 rounded mt-1">
-                                            <small class="font-monospace">{{ doc.results.extracted_text[:200] }}...</small>
+                <div class="panel-body">
+                    {% if analysis_results.document_verification.documents %}
+                        {% for doc in analysis_results.document_verification.documents %}
+                            <div class="card mb-3 border-0 shadow-sm" style="border: 1px solid rgba(0,0,0,0.05) !important;">
+                                <div class="card-header bg-light border-bottom-0 d-flex justify-content-between align-items-center">
+                                    <strong class="text-dark"><i class="fas fa-file-alt text-secondary me-2"></i>{{ doc.original_name }}</strong>
+                                    <span class="badge rounded-pill bg-{% if doc.results.authenticity_score >= 80 %}success{% elif doc.results.authenticity_score >= 60 %}warning{% else %}danger{% endif %} bg-opacity-10 text-{% if doc.results.authenticity_score >= 80 %}success{% elif doc.results.authenticity_score >= 60 %}warning{% else %}danger{% endif %} border border-{% if doc.results.authenticity_score >= 80 %}success{% elif doc.results.authenticity_score >= 60 %}warning{% else %}danger{% endif %} border-opacity-25">
+                                        {{ "%.0f"|format(doc.results.authenticity_score) }}% Authentic
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    {% if doc.results.findings %}
+                                        {% for finding in doc.results.findings %}
+                                        <div class="finding-item {% if '⚠️ CRITICAL' in finding or 'tampered' in finding.lower() %}finding-high{% elif '⚠️' in finding %}finding-medium{% else %}finding-low{% endif %}">
+                                            <p class="mb-0 small fw-medium">{{ finding }}</p>
                                         </div>
-                                    </div>
-                                {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    
+                                    {% if doc.results.risk_factors %}
+                                        <div class="mt-3 bg-light p-3 rounded-3">
+                                            <strong class="text-danger small text-uppercase">Risk Factors:</strong>
+                                            <ul class="mb-0 mt-2 list-unstyled">
+                                                {% for factor in doc.results.risk_factors %}
+                                                <li class="mb-2 d-flex align-items-start">
+                                                    <i class="fas fa-minus-circle text-{{ 'danger' if factor.severity == 'critical' else 'warning' if factor.severity == 'high' else 'info' }} mt-1 me-2" style="font-size: 10px;"></i>
+                                                    <span class="small text-secondary">
+                                                        <strong class="text-dark">{{ factor.type|replace('_', ' ')|title }}:</strong> {{ factor.description }}
+                                                        <span class="ms-1 badge bg-{{ 'danger' if factor.severity == 'critical' else 'warning' if factor.severity == 'high' else 'info' }} rounded-pill" style="font-size: 10px;">-{{ factor.impact }} pts</span>
+                                                    </span>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if doc.results.extracted_text %}
+                                        <div class="mt-3">
+                                            <strong class="small text-muted">Extracted Text (Snippet):</strong>
+                                            <div class="bg-light p-2 rounded mt-1 border">
+                                                <small class="font-monospace text-secondary" style="font-size: 0.75rem;">{{ doc.results.extracted_text[:150] }}...</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No document analysis available.</p>
-                {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No document analysis available.</p>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Behavioral Analysis -->
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-user-chart me-2"></i>Behavioral Analysis
-                    </h5>
-                    <span class="badge bg-{% if analysis_results.behavioral_analysis.behavioral_risk_score >= 75 %}danger{% elif analysis_results.behavioral_analysis.behavioral_risk_score >= 50 %}warning{% else %}success{% endif %}">
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-user-chart text-teal me-2"></i>Behavioral Analysis
+                    </h6>
+                    <span class="badge bg-{% if analysis_results.behavioral_analysis.behavioral_risk_score >= 75 %}danger{% elif analysis_results.behavioral_analysis.behavioral_risk_score >= 50 %}warning{% else %}success{% endif %} rounded-pill px-3">
                         Score: {{ analysis_results.behavioral_analysis.behavioral_risk_score }}/100
                     </span>
                 </div>
-                
-                {% if analysis_results.behavioral_analysis.findings %}
-                    <h6 class="fw-semibold mb-3">Behavioral Patterns:</h6>
-                    {% for finding in analysis_results.behavioral_analysis.findings %}
-                    <div class="finding-item {% if 'high risk' in finding.lower() %}finding-high{% elif 'moderate risk' in finding.lower() %}finding-medium{% else %}finding-low{% endif %}">
-                        <p class="mb-0">{{ finding }}</p>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No significant behavioral anomalies detected.</p>
-                {% endif %}
+                <div class="panel-body">
+                    {% if analysis_results.behavioral_analysis.findings %}
+                        <h6 class="fw-bold text-dark mb-3 fs-6">Detected Patterns:</h6>
+                        {% for finding in analysis_results.behavioral_analysis.findings %}
+                        <div class="finding-item {% if 'high risk' in finding.lower() %}finding-high{% elif 'moderate risk' in finding.lower() %}finding-medium{% else %}finding-low{% endif %}">
+                            <p class="mb-0 small fw-medium">{{ finding }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-secondary mb-0"><i class="fas fa-check-circle text-success me-2"></i>No significant behavioral anomalies detected.</p>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Hidden Link Analysis -->
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-link me-2"></i>Network Analysis
-                    </h5>
-                    <span class="badge bg-{% if analysis_results.hidden_link_analysis.connection_risk_score >= 75 %}danger{% elif analysis_results.hidden_link_analysis.connection_risk_score >= 50 %}warning{% else %}success{% endif %}">
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-link text-teal me-2"></i>Network Analysis
+                    </h6>
+                    <span class="badge bg-{% if analysis_results.hidden_link_analysis.connection_risk_score >= 75 %}danger{% elif analysis_results.hidden_link_analysis.connection_risk_score >= 50 %}warning{% else %}success{% endif %} rounded-pill px-3">
                         Score: {{ analysis_results.hidden_link_analysis.connection_risk_score }}/100
                     </span>
                 </div>
-                
-                {% if analysis_results.hidden_link_analysis.findings %}
-                    <h6 class="fw-semibold mb-3">Network Connections:</h6>
-                    {% for finding in analysis_results.hidden_link_analysis.findings %}
-                    <div class="finding-item {% if 'organized fraud' in finding.lower() or 'strong network' in finding.lower() %}finding-high{% elif 'coordinated' in finding.lower() %}finding-medium{% else %}finding-low{% endif %}">
-                        <p class="mb-0">{{ finding }}</p>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">No suspicious network connections detected.</p>
-                {% endif %}
+                <div class="panel-body">
+                    {% if analysis_results.hidden_link_analysis.findings %}
+                        <h6 class="fw-bold text-dark mb-3 fs-6">Network Connections:</h6>
+                        {% for finding in analysis_results.hidden_link_analysis.findings %}
+                        <div class="finding-item {% if 'organized fraud' in finding.lower() or 'strong network' in finding.lower() %}finding-high{% elif 'coordinated' in finding.lower() %}finding-medium{% else %}finding-low{% endif %}">
+                            <p class="mb-0 small fw-medium">{{ finding }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-secondary mb-0"><i class="fas fa-shield-alt text-success me-2"></i>No suspicious network connections detected.</p>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Explainable AI -->
             <div class="analysis-section">
-                <div class="section-header">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fas fa-brain me-2"></i>AI Explanation
-                    </h5>
+                <div class="panel-header">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-brain text-teal me-2"></i>AI Explanation (XAI)
+                    </h6>
                 </div>
-                
-                {% if analysis_results.explainable_ai.summary %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        {{ analysis_results.explainable_ai.summary }}
-                    </div>
-                {% endif %}
-                
-                {% if analysis_results.explainable_ai.risk_factors %}
-                    <h6 class="fw-semibold mb-3">Key Risk Factors:</h6>
-                    <div class="row">
-                        {% for factor in analysis_results.explainable_ai.risk_factors %}
-                        <div class="col-md-6 mb-2">
-                            <div class="card border-{% if factor.severity == 'high' %}danger{% elif factor.severity == 'medium' %}warning{% else %}success{% endif %}">
-                                <div class="card-body py-2">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-{% if factor.severity == 'high' %}exclamation-triangle text-danger{% elif factor.severity == 'medium' %}exclamation-circle text-warning{% else %}check-circle text-success{% endif %} me-2"></i>
-                                        <span class="small">{{ factor.description }}</span>
+                <div class="panel-body">
+                    {% if analysis_results.explainable_ai.summary %}
+                        <div class="alert bg-teal-light text-dark border-0 rounded-3 d-flex align-items-start mb-4">
+                            <i class="fas fa-info-circle mt-1 me-3 fs-5" style="color: var(--brand-teal);"></i>
+                            <div class="small fw-medium">{{ analysis_results.explainable_ai.summary }}</div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if analysis_results.explainable_ai.risk_factors %}
+                        <h6 class="fw-bold text-dark mb-3 fs-6">Key Risk Factors:</h6>
+                        <div class="row g-3">
+                            {% for factor in analysis_results.explainable_ai.risk_factors %}
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm bg-light" style="border-left: 4px solid var(--bs-{% if factor.severity == 'high' %}danger{% elif factor.severity == 'medium' %}warning{% else %}success{% endif %}) !important;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-start">
+                                            <i class="fas fa-{% if factor.severity == 'high' %}exclamation-triangle text-danger{% elif factor.severity == 'medium' %}exclamation-circle text-warning{% else %}check-circle text-success{% endif %} mt-1 me-2"></i>
+                                            <span class="small text-secondary fw-medium">{{ factor.description }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
+            
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Assign Officer Modal -->
 {% if current_user.role == 'admin' %}
 <div class="modal fade" id="assignModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Assign Claim to Officer</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-user-plus text-teal me-2"></i>Assign Claim</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('admin.assign_claim', claim_id=claim.id) }}">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label">Select Processing Officer</label>
-                        <select name="officer_id" class="form-select" required>
+                        <label class="form-label fw-bold text-dark small">Select Processing Officer</label>
+                        <select name="officer_id" class="form-select bg-light border-0" required>
                             <option value="">Choose an officer...</option>
                             {% for officer in officers %}
                             <option value="{{ officer.id }}">{{ officer.first_name }} {{ officer.last_name }} ({{ officer.username }})</option>
@@ -473,9 +508,9 @@
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Assign Claim</button>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-teal rounded-pill px-4">Assign Claim</button>
                 </div>
             </form>
         </div>
@@ -494,7 +529,10 @@
         const riskIndicator = document.querySelector('.risk-indicator');
         if (riskIndicator) {
             const fraudScore = {{ claim.fraud_score or 0 }};
-            riskIndicator.style.left = `${fraudScore}%`;
+            // Small timeout to allow transition to play
+            setTimeout(() => {
+                riskIndicator.style.left = `${fraudScore}%`;
+            }, 100);
         }
         
         // Handle analysis form submission
@@ -506,7 +544,6 @@
                 const submitBtn = document.getElementById('startAnalysisBtn');
                 const originalBtnContent = submitBtn.innerHTML;
                 
-                // Disable button and show loading state
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
                 
@@ -521,27 +558,23 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        // Show success message
                         const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show border-0 shadow-sm';
                         alertDiv.innerHTML = `
                             <i class="fas fa-check-circle me-2"></i>
                             <strong>Analysis Complete!</strong> Risk Score: ${result.risk_score}/100
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         `;
                         
-                        // Insert alert at the top of the page
                         const container = document.querySelector('.container-fluid');
                         container.insertBefore(alertDiv, container.firstChild);
                         
-                        // Reload page after 2 seconds to show results
                         setTimeout(() => {
                             window.location.reload();
                         }, 2000);
                     } else {
-                        // Show error message
                         const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                        alertDiv.className = 'alert alert-danger alert-dismissible fade show border-0 shadow-sm';
                         alertDiv.innerHTML = `
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Analysis Failed:</strong> ${result.error || 'Unknown error occurred'}
@@ -551,16 +584,14 @@
                         const container = document.querySelector('.container-fluid');
                         container.insertBefore(alertDiv, container.firstChild);
                         
-                        // Re-enable button
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalBtnContent;
                     }
                 } catch (error) {
                     console.error('Error analyzing claim:', error);
                     
-                    // Show error message
                     const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                    alertDiv.className = 'alert alert-danger alert-dismissible fade show border-0 shadow-sm';
                     alertDiv.innerHTML = `
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         <strong>Error:</strong> Failed to analyze claim. Please try again.
@@ -570,7 +601,6 @@
                     const container = document.querySelector('.container-fluid');
                     container.insertBefore(alertDiv, container.firstChild);
                     
-                    // Re-enable button
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnContent;
                 }

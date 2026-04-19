@@ -5,369 +5,459 @@
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 <style>
+    /* Corporate Deep Teal Theme */
+    :root {
+        --brand-teal: #008080; 
+        --brand-teal-dark: #005959;
+        --brand-teal-light: #e6f2f2;
+    }
+
+    /* Forced Grid System for Stats */
+    .grid-4-cols {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+
+    .grid-2-cols-charts {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        width: 100%;
+        margin-bottom: 2rem;
+        align-items: start;
+    }
+
+    /* THE MAGIC FIX: Activity Grid forced to stretch equally */
+    .grid-2-cols-activity {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        width: 100%;
+        margin-bottom: 2rem;
+        align-items: stretch; /* Forces both panels to be the same height */
+    }
+
+    @media (max-width: 1200px) {
+        .grid-4-cols { grid-template-columns: repeat(4, 1fr); gap: 1rem; } 
+        .grid-2-cols-charts { grid-template-columns: 2fr 1fr; gap: 1rem; }
+        .grid-2-cols-activity { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    }
+    
+    @media (max-width: 991px) {
+        .grid-4-cols { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 767px) {
+        .grid-4-cols { grid-template-columns: 1fr; }
+        .grid-2-cols-charts { grid-template-columns: 1fr; }
+        .grid-2-cols-activity { grid-template-columns: 1fr; }
+        .border-end { border-right: none !important; }
+    }
+
+    /* Modern Minimalist Stats Cards */
     .stats-card {
+        background: #ffffff;
         border-radius: 12px;
-        border: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s ease;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
     }
     
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--brand-teal);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
     .stats-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 128, 128, 0.1);
     }
+    .stats-card:hover::before { opacity: 1; }
     
-    .stats-icon {
-        font-size: 2.5rem;
-        opacity: 0.8;
-    }
-    
-    .chart-container {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        height: 300px;
-    }
-    
-    .risk-distribution {
+    .icon-square-dashboard {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
         display: flex;
-        height: 30px;
-        border-radius: 15px;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    /* Soft Icon Backgrounds */
+    .bg-teal-soft { background-color: var(--brand-teal-light); color: var(--brand-teal); }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.15); color: #198754; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.15); color: #0dcaf0; }
+    .bg-danger-soft { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
+    .bg-dark-soft { background-color: rgba(33, 37, 41, 0.1); color: #212529; }
+
+    /* Button Styling */
+    .btn-teal { background-color: var(--brand-teal-dark); color: white; border: none; transition: all 0.2s; }
+    .btn-teal:hover { background-color: #004040; color: white; transform: translateY(-2px); }
+    .btn-outline-teal { border: 2px solid var(--brand-teal); color: var(--brand-teal); background: transparent; transition: all 0.2s; }
+    .btn-outline-teal:hover { background: var(--brand-teal-light); color: var(--brand-teal-dark); transform: translateY(-2px); }
+
+    /* Chart & Panel Containers */
+    .dashboard-panel {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        height: 100%;
         overflow: hidden;
     }
     
-    .risk-high { background-color: #dc3545; }
-    .risk-medium { background-color: #ffc107; }
-    .risk-low { background-color: #198754; }
+    .panel-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1rem 1.5rem;
+        background: #fafbfa;
+    }
+
+    .chart-container {
+        padding: 20px;
+        height: 300px;
+        width: 100%;
+    }
     
-    /* Enhanced Activity Scroll Container */
-    .activity-scroll-container {
+    /* Custom Risk Bar */
+    .risk-distribution {
+        display: flex;
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+        background: #f1f1f1;
+    }
+    .risk-high { background-color: #dc3545; transition: width 1s ease; }
+    .risk-medium { background-color: #ffc107; transition: width 1s ease; }
+    .risk-low { background-color: #198754; transition: width 1s ease; }
+    
+    /* THE MAGIC FIX: Protected Timeline CSS immune to admin.css bleeding */
+    .admin-timeline {
         position: relative;
+        margin: 1rem 1.5rem;
     }
-    
-    .activity-scroll-container::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .activity-scroll-container::-webkit-scrollbar-track {
-        background: var(--gray-100);
-        border-radius: 10px;
-        margin: 10px 0;
-    }
-    
-    .activity-scroll-container::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        border-radius: 10px;
-        border: 2px solid var(--gray-100);
-        transition: var(--transition);
-    }
-    
-    .activity-scroll-container::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-        transform: scale(1.1);
-    }
-    
-    /* Firefox scrollbar styling */
-    .activity-scroll-container {
-        scrollbar-width: thin;
-        scrollbar-color: var(--primary-color) var(--gray-100);
-    }
-    
-    /* Fade effect at bottom of scroll area */
-    .activity-scroll-container::after {
+    .admin-timeline::before {
         content: '';
         position: absolute;
+        left: 7px; /* Centers the line exactly on the dot */
+        top: 0;
         bottom: 0;
-        left: 0;
-        right: 0;
-        height: 20px;
-        background: linear-gradient(transparent, rgba(255, 255, 255, 0.9));
-        pointer-events: none;
-        border-radius: 0 0 var(--border-radius) var(--border-radius);
+        width: 2px;
+        background: var(--brand-teal-light);
     }
+    .admin-timeline-item {
+        position: relative;
+        padding-left: 30px;
+        padding-bottom: 1.5rem;
+    }
+    .admin-timeline-item:last-child {
+        padding-bottom: 0;
+    }
+    .admin-timeline-point {
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--brand-teal);
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--brand-teal-light);
+        z-index: 2;
+    }
+    .admin-timeline-card {
+        background: white;
+        border: 1px solid rgba(0, 128, 128, 0.15);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    
+    /* THE MAGIC FIX: Custom synchronized scrollbars */
+    .custom-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--brand-teal-light) #f8f9fa;
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #f8f9fa; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: var(--brand-teal-light); border-radius: 10px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--brand-teal); }
+    
+    /* Sticky Table Headers for the scrollable container */
+    .table-modern th { 
+        border-top: none; 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        letter-spacing: 0.5px; 
+        color: #6c757d; 
+        position: sticky; 
+        top: 0; 
+        background: #f8f9fa; 
+        z-index: 10; 
+    }
+    .table-modern td { vertical-align: middle; border-bottom: 1px solid #f1f1f1; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4 px-lg-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <h1 class="h3 fw-bold">Admin Dashboard</h1>
-            <p class="text-muted">Welcome back, {{ current_user.first_name }}! Here's your system overview.</p>
+            <h1 class="h3 fw-bold text-dark mb-1">Admin Dashboard</h1>
+            <p class="text-secondary mb-0">Welcome back, {{ current_user.first_name }}! Here's your system overview.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ url_for('admin.claims_list') }}" class="btn btn-outline-primary">
+            <a href="{{ url_for('admin.claims_list') }}" class="btn btn-outline-teal fw-medium">
                 <i class="fas fa-list me-2"></i>View All Claims
             </a>
             {% if current_user.role == 'admin' %}
-            <a href="{{ url_for('admin.user_management') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('admin.user_management') }}" class="btn btn-teal fw-medium">
                 <i class="fas fa-users me-2"></i>Manage Users
             </a>
             {% endif %}
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Total Claims</h6>
-                            <h3 class="fw-bold">{{ stats.total_claims }}</h3>
-                        </div>
-                        <i class="fas fa-file-invoice stats-icon"></i>
-                    </div>
+    <div class="grid-4-cols">
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Total Claims</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.total_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-teal-soft">
+                    <i class="fas fa-file-invoice"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Pending Review</h6>
-                            <h3 class="fw-bold">{{ stats.pending_claims }}</h3>
-                        </div>
-                        <i class="fas fa-clock stats-icon"></i>
-                    </div>
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Pending Review</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.pending_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-warning-soft">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Approved</h6>
-                            <h3 class="fw-bold">{{ stats.approved_claims }}</h3>
-                        </div>
-                        <i class="fas fa-check-circle stats-icon"></i>
-                    </div>
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Approved</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.approved_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-success-soft">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Under Review</h6>
-                            <h3 class="fw-bold">{{ stats.under_review_claims }}</h3>
-                        </div>
-                        <i class="fas fa-search stats-icon"></i>
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Under Review</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.under_review_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-info-soft">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-4-cols">
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Total Users</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.total_users }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-dark-soft">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Active Users</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.active_users }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-success-soft">
+                    <i class="fas fa-user-check"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Officers</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.officer_users }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-info-soft">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Administrators</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.admin_users }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-danger-soft">
+                    <i class="fas fa-crown"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2-cols-charts">
+        <div class="dashboard-panel">
+            <div class="panel-header d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-chart-line text-teal me-2"></i>Claims Over Time (Last 30 Days)
+                </h6>
+            </div>
+            <div class="chart-container">
+                <canvas id="claimsOverTimeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="dashboard-panel">
+            <div class="panel-header">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-chart-pie text-teal me-2"></i>Risk Distribution
+                </h6>
+            </div>
+            <div class="p-4">
+                <div class="chart-container" style="height: 200px; padding: 0;">
+                    <canvas id="riskDistributionChart"></canvas>
+                </div>
+                <div class="mt-4">
+                    <div class="risk-distribution mb-2">
+                        <div class="risk-high" style="width: {{ (fraud_stats.high_risk / stats.total_claims * 100) if stats.total_claims > 0 else 0 }}%"></div>
+                        <div class="risk-medium" style="width: {{ (fraud_stats.medium_risk / stats.total_claims * 100) if stats.total_claims > 0 else 0 }}%"></div>
+                        <div class="risk-low" style="width: {{ (fraud_stats.low_risk / stats.total_claims * 100) if stats.total_claims > 0 else 0 }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted fw-medium">
+                        <span class="text-danger"><i class="fas fa-circle" style="font-size: 8px; vertical-align: middle;"></i> High: {{ fraud_stats.high_risk }}</span>
+                        <span class="text-warning"><i class="fas fa-circle" style="font-size: 8px; vertical-align: middle;"></i> Med: {{ fraud_stats.medium_risk }}</span>
+                        <span class="text-success"><i class="fas fa-circle" style="font-size: 8px; vertical-align: middle;"></i> Low: {{ fraud_stats.low_risk }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-secondary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Total Users</h6>
-                            <h3 class="fw-bold">{{ stats.total_users }}</h3>
-                        </div>
-                        <i class="fas fa-users stats-icon"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="grid-2-cols-activity">
         
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Active Users</h6>
-                            <h3 class="fw-bold">{{ stats.active_users }}</h3>
-                        </div>
-                        <i class="fas fa-user-check stats-icon"></i>
-                    </div>
-                </div>
+        <div class="dashboard-panel d-flex flex-column">
+            <div class="panel-header d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-history text-teal me-2"></i>Recent Claims
+                </h6>
+                <a href="{{ url_for('admin.claims_list') }}" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size: 0.8rem;">View All</a>
             </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Officers</h6>
-                            <h3 class="fw-bold">{{ stats.officer_users }}</h3>
-                        </div>
-                        <i class="fas fa-user-shield stats-icon"></i>
+            
+            <div class="p-0 flex-grow-1 custom-scroll" style="max-height: 450px; overflow-y: auto;">
+                {% if recent_claims %}
+                    <table class="table table-modern table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th class="pe-4">Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in recent_claims %}
+                            <tr>
+                                <td class="ps-4"><strong class="text-dark">#{{ claim.id }}</strong></td>
+                                <td class="text-secondary">{{ claim.claim_type|title }}</td>
+                                <td class="fw-medium">{{ format_currency(claim.amount) }}</td>
+                                <td>
+                                    <span class="badge rounded-pill border status-badge" data-status="{{ claim.status }}">
+                                        {{ claim.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td class="pe-4">
+                                    {% if claim.fraud_score is not none %}
+                                        {% set risk = format_risk_score(claim.fraud_score) %}
+                                        <span class="badge rounded-pill risk-badge" data-risk-score="{{ claim.fraud_score }}">
+                                            {{ risk.score }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-light text-secondary border">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="icon-square-dashboard bg-light mx-auto mb-3"><i class="fas fa-file-invoice text-muted"></i></div>
+                        <p class="text-secondary fw-medium mb-0">No claims found in the system</p>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card bg-dark text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Administrators</h6>
-                            <h3 class="fw-bold">{{ stats.admin_users }}</h3>
-                        </div>
-                        <i class="fas fa-crown stats-icon"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="row mb-4">
-        <!-- Claims Over Time Chart -->
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Claims Over Time (Last 30 Days)
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="claimsOverTimeChart"></canvas>
-                    </div>
-                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Fraud Distribution -->
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Risk Distribution
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="riskDistributionChart"></canvas>
-                    </div>
-                    <div class="mt-3">
-                        <div class="risk-distribution mb-2">
-                            <div class="risk-high" style="width: {{ (fraud_stats.high_risk / stats.total_claims * 100) if stats.total_claims > 0 else 0 }}%"></div>
-                            <div class="risk-medium" style="width: {{ (fraud_stats.medium_risk / stats.total_claims * 100) if stats.total_claims > 0 else 0 }}%"></div>
-                            <div class="risk-low" style="width: {{ (fraud_stats.low_risk / stats.total_claims * 100) if stats.total_claims > 0 else 0 }}%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>High Risk: {{ fraud_stats.high_risk }}</span>
-                            <span>Medium Risk: {{ fraud_stats.medium_risk }}</span>
-                            <span>Low Risk: {{ fraud_stats.low_risk }}</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="dashboard-panel d-flex flex-column">
+            <div class="panel-header d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-list-alt text-teal me-2"></i>Audit Logs
+                </h6>
+                <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size: 0.8rem;">View All</a>
             </div>
-        </div>
-    </div>
-
-    <!-- Recent Activity Row -->
-    <div class="row">
-        <!-- Recent Claims -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-history me-2"></i>Recent Claims
-                    </h5>
-                    <a href="{{ url_for('admin.claims_list') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="card-body">
-                    {% if recent_claims %}
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Type</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Risk</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for claim in recent_claims %}
-                                    <tr>
-                                        <td><strong>#{{ claim.id }}</strong></td>
-                                        <td>{{ claim.claim_type|title }}</td>
-                                        <td>{{ format_currency(claim.amount) }}</td>
-                                        <td>
-                                            <span class="badge status-badge" data-status="{{ claim.status }}">
-                                                {{ claim.status|replace('_', ' ')|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if claim.fraud_score is not none %}
-                                                {% set risk = format_risk_score(claim.fraud_score) %}
-                                                <span class="badge risk-badge" data-risk-score="{{ claim.fraud_score }}">
-                                                    {{ risk.score }}
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-file-invoice fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">No claims found</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-list-alt me-2"></i>Recent Activity
-                    </h5>
-                    <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-sm btn-outline-primary">View Logs</a>
-                </div>
-                <div class="card-body p-0">
-                    {% if recent_logs %}
-                        <div class="activity-scroll-container" style="max-height: 400px; overflow-y: auto; padding: 1.5rem;">
-                            <div class="timeline">
-                                {% for log in recent_logs %}
-                                <div class="timeline-item">
-                                    <div class="timeline-point"></div>
-                                    <div class="timeline-content">
-                                        <div class="d-flex justify-content-between">
-                                            <h6 class="mb-0">{{ log.action|replace('_', ' ')|title }}</h6>
-                                            <small class="text-muted">{{ log.timestamp.strftime('%H:%M') }}</small>
-                                        </div>
-                                        <small class="text-muted">
-                                            By {{ log.user.username }} • {{ log.timestamp.strftime('%d %b %Y') }}
-                                        </small>
-                                    </div>
+            
+            <div class="p-0 flex-grow-1 custom-scroll bg-light" style="max-height: 450px; overflow-y: auto;">
+                {% if recent_logs %}
+                    <div class="admin-timeline">
+                        {% for log in recent_logs %}
+                        <div class="admin-timeline-item">
+                            <div class="admin-timeline-point"></div>
+                            <div class="admin-timeline-card">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.95rem;">{{ log.action|replace('_', ' ')|title }}</h6>
+                                    <span class="badge bg-light text-secondary border rounded-pill">{{ log.timestamp.strftime('%H:%M') }}</span>
                                 </div>
-                                {% endfor %}
+                                <p class="text-secondary small mb-0">
+                                    Executed by <span class="text-teal fw-bold">{{ log.user.username }}</span> on {{ log.timestamp.strftime('%d %b %Y') }}
+                                </p>
                             </div>
                         </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">No recent activity</p>
-                        </div>
-                    {% endif %}
-                </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="icon-square-dashboard bg-light mx-auto mb-3"><i class="fas fa-clock text-muted"></i></div>
+                        <p class="text-secondary fw-medium mb-0">No recent system activity</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -381,7 +471,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateRiskScoreColors();
     updateStatusBadges();
     
-    // Load charts data
     fetch('/admin/api/stats/claims-over-time')
         .then(response => response.json())
         .then(data => {
@@ -403,34 +492,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Claims Submitted',
                     data: data.counts,
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: '#008080',
+                    backgroundColor: 'rgba(0, 128, 128, 0.1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#008080',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45
-                        }
-                    }
+                    y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f1f1f1' }, ticks: { stepSize: 1, color: '#6c757d' } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, color: '#6c757d' } }
                 }
             }
         });
@@ -445,21 +524,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     data: data.totals,
                     backgroundColor: [
-                        '#0d6efd', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0'
+                        '#008080', '#005959', '#e6f2f2', '#ffc107', '#dc3545', '#198754' 
                     ],
-                    borderWidth: 1
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '70%',
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 12
-                        }
-                    }
+                    legend: { position: 'right', labels: { boxWidth: 12, padding: 15, color: '#495057' } }
                 }
             }
         });

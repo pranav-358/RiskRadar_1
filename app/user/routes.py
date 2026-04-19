@@ -8,6 +8,28 @@ from app.services.integration_service import integration_service
 from app.user import user_bp
 from datetime import datetime
 import os
+import threading
+
+def _process_claim_background(app, claim_id):
+    """
+    Process claim AI analysis in background thread
+    
+    Args:
+        app: Flask app context
+        claim_id: ID of the claim to process
+    """
+    with app.app_context():
+        try:
+            current_app.logger.info(f"Starting background AI analysis for claim {claim_id}")
+            analysis_result = integration_service.process_claim(claim_id)
+            if analysis_result['success']:
+                current_app.logger.info(f"Background AI analysis completed for claim {claim_id}. Risk score: {analysis_result['overall_risk_score']}")
+            else:
+                current_app.logger.error(f"Background AI analysis failed for claim {claim_id}: {analysis_result.get('error')}")
+        except Exception as e:
+            current_app.logger.error(f"Error in background AI analysis for claim {claim_id}: {str(e)}")
+            import traceback
+            current_app.logger.error(traceback.format_exc())
 
 @user_bp.route('/dashboard')
 @login_required
@@ -130,17 +152,20 @@ def new_claim():
             db.session.commit()
             current_app.logger.info("Claim committed to database successfully")
             
-            # Trigger AI analysis in background
+            # Trigger AI analysis in background thread (non-blocking)
             try:
-                current_app.logger.info(f"Triggering AI analysis for claim {claim.id}")
-                analysis_result = integration_service.process_claim(claim.id)
-                if analysis_result['success']:
-                    current_app.logger.info(f"AI analysis completed. Risk score: {analysis_result['overall_risk_score']}")
-                else:
-                    current_app.logger.error(f"AI analysis failed: {analysis_result.get('error')}")
+                current_app.logger.info(f"Queuing background AI analysis for claim {claim.id}")
+                # Start background thread for AI analysis
+                analysis_thread = threading.Thread(
+                    target=_process_claim_background,
+                    args=(current_app._get_current_object(), claim.id),
+                    daemon=True
+                )
+                analysis_thread.start()
+                current_app.logger.info(f"Background analysis thread started for claim {claim.id}")
             except Exception as e:
-                current_app.logger.error(f"Error triggering AI analysis: {str(e)}")
-                # Don't fail the claim submission if analysis fails
+                current_app.logger.error(f"Error starting background analysis thread: {str(e)}")
+                # Don't fail the claim submission if background thread fails to start
             
             # Log audit event
             log_audit_event(

@@ -2,153 +2,277 @@
 
 {% block title %}Profile - RiskRadar{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Corporate Deep Teal Theme */
+    :root {
+        --brand-teal: #008080; 
+        --brand-teal-dark: #005959;
+        --brand-teal-light: #e6f2f2;
+    }
+
+    /* THE MAGIC FIX: Forced 2-Column Info Grid */
+    .info-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem 2rem;
+    }
+
+    /* THE MAGIC FIX: Forced 4-Column Stats Grid */
+    .grid-4-cols {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    @media (max-width: 991px) {
+        .info-grid-2 { grid-template-columns: 1fr; gap: 1rem; }
+        .grid-4-cols { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    }
+    @media (max-width: 575px) {
+        .grid-4-cols { grid-template-columns: 1fr; }
+    }
+
+    /* Modern Minimalist Unified Card */
+    .profile-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-panel::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: var(--brand-teal);
+    }
+
+    .stats-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--brand-teal);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 128, 128, 0.1);
+    }
+    .stats-card:hover::before { opacity: 1; }
+
+    .icon-square-dashboard {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Soft Background Colors */
+    .bg-teal-soft { background-color: var(--brand-teal-light); color: var(--brand-teal); }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.15); color: #198754; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.15); color: #0dcaf0; }
+
+    /* Buttons */
+    .btn-teal {
+        background-color: var(--brand-teal-dark);
+        color: white;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-teal:hover { background-color: #004040; color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    /* Info Label Styling */
+    .info-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+    .info-value {
+        font-size: 1.05rem;
+        color: #212529;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+    .info-box {
+        background: #fcfdfe;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4 px-lg-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="col-xl-10">
+            
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
                 <div>
-                    <h1 class="h3 fw-bold">User Profile</h1>
-                    <p class="text-muted">Manage your account information and preferences</p>
+                    <h1 class="h3 fw-bold text-dark mb-1">User Profile</h1>
+                    <p class="text-secondary mb-0">Manage your account information and preferences</p>
                 </div>
-                <a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary">
+                <a href="{{ url_for('user.edit_profile') }}" class="btn btn-teal fw-medium rounded-pill px-4">
                     <i class="fas fa-edit me-2"></i>Edit Profile
                 </a>
             </div>
 
-            <!-- Profile Card -->
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center mb-4">
-                            <div class="profile-avatar mb-3">
-                                <i class="fas fa-user-circle fa-5x text-primary"></i>
-                            </div>
-                            <h4>{{ user.first_name }} {{ user.last_name }}</h4>
-                            <p class="text-muted">@{{ user.username }}</p>
-                            <span class="badge bg-secondary">{{ user.role|title }}</span>
+            <div class="profile-panel mb-5">
+                
+                <div class="d-flex flex-column align-items-center text-center mb-5">
+                    <div class="position-relative mb-3">
+                        <div class="bg-teal-soft rounded-circle d-flex align-items-center justify-content-center" style="width: 110px; height: 110px;">
+                            <i class="fas fa-user text-teal" style="font-size: 3rem;"></i>
                         </div>
-                        
-                        <div class="col-md-8">
-                            <h5 class="mb-4">Personal Information</h5>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">First Name</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.first_name }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Last Name</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.last_name }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Email Address</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.email }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Phone Number</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.phone if user.phone else 'Not provided' }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Aadhar Number</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.aadhar_number if user.aadhar_number else 'Not provided' }}</p>
-                                </div>
-                            </div>
-                            
-                            <hr>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Member Since</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.created_at.strftime('%d %b %Y') }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row mb-3">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Last Login</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <p class="mb-0">{{ user.last_login.strftime('%d %b %Y %H:%M') if user.last_login else 'Never' }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <label class="form-label fw-semibold">Account Status</label>
-                                </div>
-                                <div class="col-sm-8">
-                                    <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                        {{ 'Active' if user.is_active else 'Inactive' }}
-                                    </span>
-                                </div>
-                            </div>
+                        <span class="position-absolute bottom-0 end-0 p-2 border border-2 border-white rounded-circle {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}" title="{{ 'Active' if user.is_active else 'Inactive' }}">
+                            <span class="visually-hidden">Status</span>
+                        </span>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-secondary mb-2">@{{ user.username }}</p>
+                    <span class="badge bg-teal-light text-teal border border-teal border-opacity-25 rounded-pill px-3 py-2 fs-6">
+                        {{ user.role|title }}
+                    </span>
+                </div>
+
+                <hr class="text-muted opacity-25 mb-4">
+                
+                <h5 class="fw-bold text-dark mb-4 d-flex align-items-center">
+                    <i class="fas fa-address-card text-teal me-3 fs-4"></i>Account & Personal Details
+                </h5>
+
+                <div class="info-grid-2">
+                    
+                    <div class="info-box">
+                        <div class="info-label">Account Status</div>
+                        <p class="info-value {% if user.is_active %}text-success{% else %}text-danger{% endif %} fw-bold">
+                            {{ 'Active' if user.is_active else 'Inactive' }}
+                        </p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-label">Member Since</div>
+                        <p class="info-value">{{ user.created_at.strftime('%d %b %Y') }}</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-label">Last Login</div>
+                        <p class="info-value">{{ user.last_login.strftime('%d %b %Y %H:%M') if user.last_login else 'Never' }}</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-label">Email Address</div>
+                        <p class="info-value">{{ user.email }}</p>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-label">First Name</div>
+                        <p class="info-value">{{ user.first_name }}</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-label">Last Name</div>
+                        <p class="info-value">{{ user.last_name }}</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-label">Phone Number</div>
+                        <p class="info-value">{{ user.phone if user.phone else 'Not provided' }}</p>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="info-label">Aadhar Number</div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-fingerprint text-secondary me-2"></i>
+                            <p class="info-value mb-0">{{ user.aadhar_number if user.aadhar_number else 'Not provided' }}</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-teal me-2"></i>Your Statistics</h5>
+            <div class="grid-4-cols pb-4">
+                <div class="stats-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-secondary small fw-bold text-uppercase mb-1">Total Claims</p>
+                            <h3 class="fw-bolder text-dark mb-0">{{ stats.total_claims }}</h3>
+                        </div>
+                        <div class="icon-square-dashboard bg-teal-soft">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-secondary small fw-bold text-uppercase mb-1">Approved</p>
+                            <h3 class="fw-bolder text-dark mb-0">{{ stats.approved_claims }}</h3>
+                        </div>
+                        <div class="icon-square-dashboard bg-success-soft">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-secondary small fw-bold text-uppercase mb-1">Pending</p>
+                            <h3 class="fw-bolder text-dark mb-0">{{ stats.pending_claims }}</h3>
+                        </div>
+                        <div class="icon-square-dashboard bg-warning-soft">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-card p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-secondary small fw-bold text-uppercase mb-1">Under Review</p>
+                            <h3 class="fw-bolder text-dark mb-0">{{ stats.under_review_claims }}</h3>
+                        </div>
+                        <div class="icon-square-dashboard bg-info-soft">
+                            <i class="fas fa-search"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Statistics Card -->
-            <div class="card mt-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>Claim Statistics
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <div class="bg-light rounded p-3">
-                                <h3 class="fw-bold text-primary">{{ stats.total_claims }}</h3>
-                                <p class="text-muted mb-0">Total Claims</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="bg-light rounded p-3">
-                                <h3 class="fw-bold text-success">{{ stats.approved_claims }}</h3>
-                                <p class="text-muted mb-0">Approved</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="bg-light rounded p-3">
-                                <h3 class="fw-bold text-warning">{{ stats.pending_claims }}</h3>
-                                <p class="text-muted mb-0">Pending</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="bg-light rounded p-3">
-                                <h3 class="fw-bold text-info">{{ stats.under_review_claims }}</h3>
-                                <p class="text-muted mb-0">Under Review</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -156,6 +280,6 @@
 
 {% block extra_js %}
 <script>
-    // Add any profile-specific JavaScript here
+    // Profile-specific JavaScript remains untouched
 </script>
 {% endblock %}

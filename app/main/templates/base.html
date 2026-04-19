@@ -13,6 +13,8 @@
     
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     
+    <link href="{{ url_for('static', filename='css/corporate-theme.css') }}" rel="stylesheet">
+    
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
@@ -36,13 +38,18 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        .navbar-brand { letter-spacing: 1px; }
+        .navbar-brand { 
+            letter-spacing: 1px;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
         
-        /* Animated Nav Links */
+        /* Animated Nav Links - Improved Text Color */
         .navbar-nav .nav-link {
             position: relative;
             transition: color 0.3s ease;
             font-weight: 500;
+            color: #ffffff !important;
         }
         .navbar-nav .nav-link::after {
             content: '';
@@ -51,12 +58,15 @@
             height: 2px;
             bottom: 4px;
             left: 50%;
-            background-color: #fff;
+            background-color: #60d5ff;
             transition: all 0.3s ease;
             transform: translateX(-50%);
             border-radius: 2px;
         }
         .navbar-nav .nav-link:not(.btn):hover::after { width: 80%; }
+        .navbar-nav .nav-link:hover {
+            color: #60d5ff !important;
+        }
         
         /* Elevated Buttons */
         .btn {

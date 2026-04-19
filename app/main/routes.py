@@ -160,3 +160,110 @@ def register():
                 flash('Registration failed. Please try again.', 'danger')
     
     return render_template('register.html', form=form)
+
+# ===== CORPORATE DESIGN SYSTEM ROUTES =====
+
+@main_bp.route('/login_corporate', methods=['GET', 'POST'])
+def login_corporate():
+    """Corporate login page - Professional split-screen design"""
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    
+    form = LoginForm()
+    
+    if form.validate_on_submit():
+        try:
+            user = User.query.filter_by(username=form.username.data).first()
+            
+            if user is None:
+                flash(f'User "{form.username.data}" not found. Please check your username.', 'danger')
+                return render_template('login_corporate.html', form=form)
+            
+            if not user.check_password(form.password.data):
+                flash('Invalid password. Please try again.', 'danger')
+                return render_template('login_corporate.html', form=form)
+            
+            if not user.is_active:
+                flash('Your account has been deactivated. Please contact support.', 'warning')
+                return render_template('login_corporate.html', form=form)
+            
+            # Update last login timestamp
+            try:
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Warning: Could not update last_login: {e}")
+            
+            # Log the user in
+            login_user(user, remember=form.remember_me.data)
+            
+            # Role-based redirect
+            if user.role == 'user':
+                flash(f'Welcome back, {user.first_name}!', 'success')
+                return redirect(url_for('user.dashboard'))
+            else:  # officer or admin
+                flash(f'Welcome back, {user.first_name}!', 'success')
+                return redirect(url_for('admin.dashboard'))
+                
+        except Exception as e:
+            flash(f'Login error: {str(e)}', 'danger')
+            print(f"Login error: {e}")
+            return render_template('login_corporate.html', form=form)
+    
+    # Show form validation errors
+    if form.errors:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{field}: {error}', 'danger')
+    
+    return render_template('login_corporate.html', form=form)
+
+@main_bp.route('/dashboard_corporate')
+@login_required
+def dashboard_corporate():
+    """Corporate dashboard page - Three-column layout with metrics and timeline"""
+    from app.models import Claim
+    
+    # Get user's claims based on role
+    if current_user.role == 'user':
+        claims = Claim.query.filter_by(user_id=current_user.id).all()
+    else:
+        claims = Claim.query.all()
+    
+    # Calculate metrics
+    total_claims = len(claims)
+    approved = len([c for c in claims if c.status == 'approved'])
+    rejected = len([c for c in claims if c.status == 'rejected'])
+    under_review = len([c for c in claims if c.status == 'pending'])
+    fraud_detected = len([c for c in claims if c.fraud_score and c.fraud_score > 0.7])
+    
+    # Calculate average processing time (in hours)
+    avg_processing_time = 2.3  # Default value
+    if claims:
+        total_hours = 0
+        count = 0
+        for claim in claims:
+            if claim.created_at and claim.updated_at:
+                hours = (claim.updated_at - claim.created_at).total_seconds() / 3600
+                total_hours += hours
+                count += 1
+        if count > 0:
+            avg_processing_time = round(total_hours / count, 1)
+    
+    metrics = {
+        'total_claims': total_claims,
+        'approved': approved,
+        'rejected': rejected,
+        'under_review': under_review,
+        'fraud_detected': fraud_detected,
+        'avg_processing_time': avg_processing_time
+    }
+    
+    return render_template('dashboard_corporate.html', metrics=metrics)
+
+@main_bp.route('/explore_corporate')
+@login_required
+def explore_corporate():
+    """Corporate explore page - Three-column layout with resources and filters"""
+    return render_template('explore_corporate.html')

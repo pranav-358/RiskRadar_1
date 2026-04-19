@@ -5,232 +5,294 @@
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
 <style>
-    .stats-card {
-        border-radius: 15px;
-        border: none;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s ease;
+    /* Corporate Deep Teal Theme */
+    :root {
+        --brand-teal: #008080; 
+        --brand-teal-dark: #005959;
+        --brand-teal-light: #e6f2f2;
+    }
+
+    /* THE MAGIC FIX: Forced Grid Systems */
+    .grid-4-cols {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        width: 100%;
     }
     
-    .stats-card:hover {
-        transform: translateY(-3px);
+    .grid-3-cols {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        width: 100%;
     }
-    
-    .stats-icon {
-        font-size: 2.5rem;
-        opacity: 0.8;
+
+    /* Keep items in "one lane" on scaled laptops */
+    @media (max-width: 1200px) {
+        .grid-4-cols { grid-template-columns: repeat(4, 1fr); gap: 1rem; } 
+        .grid-3-cols { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     }
-    
-    .claim-card {
+    @media (max-width: 991px) {
+        .grid-4-cols { grid-template-columns: repeat(2, 1fr); }
+        .grid-3-cols { grid-template-columns: repeat(3, 1fr); } /* Let it wrap naturally on true tablets */
+    }
+    @media (max-width: 767px) {
+        .grid-4-cols { grid-template-columns: 1fr; }
+        .grid-3-cols { grid-template-columns: 1fr; }
+    }
+
+    /* Modern Minimalist Cards */
+    .stats-card, .action-card {
+        background: #ffffff;
         border-radius: 12px;
-        border: 1px solid #e9ecef;
-        transition: all 0.2s ease;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
     }
     
-    .claim-card:hover {
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        border-color: #0d6efd;
+    .stats-card::before, .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--brand-teal);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stats-card:hover, .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 128, 128, 0.1);
+    }
+    .stats-card:hover::before, .action-card:hover::before { opacity: 1; }
+    
+    /* Icon Styling */
+    .icon-square-dashboard {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
     }
     
-    .progress {
-        height: 8px;
-        border-radius: 4px;
+    /* Soft Background Colors for Icons */
+    .bg-teal-soft { background-color: var(--brand-teal-light); color: var(--brand-teal); }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.15); color: #198754; }
+    .bg-info-soft { background-color: rgba(13, 202, 240, 0.15); color: #0dcaf0; }
+
+    /* Button and Table Styling */
+    .btn-teal {
+        background-color: var(--brand-teal-dark);
+        color: white;
+        border: none;
+        transition: all 0.2s;
     }
+    .btn-teal:hover { background-color: #004040; color: white; transform: translateY(-2px); }
+    
+    .btn-outline-teal {
+        border: 2px solid var(--brand-teal);
+        color: var(--brand-teal);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-teal:hover { background: var(--brand-teal-light); color: var(--brand-teal-dark); transform: translateY(-2px); }
+
+    .dashboard-panel {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+    .panel-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1rem 1.5rem;
+        background: #fafbfa;
+    }
+    
+    .table-modern th { border-top: none; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; color: #6c757d; }
+    .table-modern td { vertical-align: middle; border-bottom: 1px solid #f1f1f1; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Welcome Header -->
-    <div class="row mb-4">
-        <div class="col-12">
+<div class="container-fluid py-4 px-lg-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">Welcome, {{ current_user.first_name }}!</h1>
+            <p class="text-secondary mb-0">Here's an overview of your insurance claims</p>
+        </div>
+        <a href="{{ url_for('user.new_claim') }}" class="btn btn-teal fw-medium">
+            <i class="fas fa-plus me-2"></i>Submit New Claim
+        </a>
+    </div>
+
+    <div class="grid-4-cols mb-4">
+        <div class="stats-card p-4">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="h3 fw-bold">Welcome, {{ current_user.first_name }}!</h1>
-                    <p class="text-muted">Here's an overview of your insurance claims</p>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Total Claims</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.total_claims }}</h3>
                 </div>
-                <a href="{{ url_for('user.new_claim') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Submit New Claim
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Total Claims</h6>
-                            <h3 class="fw-bold">{{ stats.total_claims }}</h3>
-                        </div>
-                        <i class="fas fa-file-invoice stats-icon"></i>
-                    </div>
+                <div class="icon-square-dashboard bg-teal-soft">
+                    <i class="fas fa-file-invoice"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Approved</h6>
-                            <h3 class="fw-bold">{{ stats.approved_claims }}</h3>
-                        </div>
-                        <i class="fas fa-check-circle stats-icon"></i>
-                    </div>
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Approved</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.approved_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-success-soft">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Pending</h6>
-                            <h3 class="fw-bold">{{ stats.pending_claims }}</h3>
-                        </div>
-                        <i class="fas fa-clock stats-icon"></i>
-                    </div>
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Pending</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.pending_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-warning-soft">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Under Review</h6>
-                            <h3 class="fw-bold">{{ stats.under_review_claims }}</h3>
-                        </div>
-                        <i class="fas fa-search stats-icon"></i>
-                    </div>
+        <div class="stats-card p-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Under Review</p>
+                    <h3 class="fw-bolder text-dark mb-0">{{ stats.under_review_claims }}</h3>
+                </div>
+                <div class="icon-square-dashboard bg-info-soft">
+                    <i class="fas fa-search"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Claims Section -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Recent Claims</h5>
-                    <a href="{{ url_for('user.view_claims') }}" class="btn btn-sm btn-outline-primary">
-                        View All
+    <div class="dashboard-panel mb-5">
+        <div class="panel-header d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0">
+                <i class="fas fa-history text-teal me-2"></i>Recent Claims
+            </h6>
+            <a href="{{ url_for('user.view_claims') }}" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size: 0.8rem;">
+                View All
+            </a>
+        </div>
+        <div class="p-0">
+            {% if claims %}
+                <div class="table-responsive">
+                    <table class="table table-modern table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Claim ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Risk Score</th>
+                                <th class="pe-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims %}
+                            <tr>
+                                <td class="ps-4"><strong class="text-dark">#{{ claim.id }}</strong></td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">{{ claim.claim_type|title }}</span>
+                                </td>
+                                <td class="fw-medium">{{ format_currency(claim.amount) }}</td>
+                                <td class="text-secondary small">{{ claim.submission_date.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    <span class="badge rounded-pill border status-badge" data-status="{{ claim.status }}">
+                                        {{ claim.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if claim.fraud_score is not none %}
+                                        {% set risk = format_risk_score(claim.fraud_score) %}
+                                        <span class="badge rounded-pill risk-badge" data-risk-score="{{ claim.fraud_score }}">
+                                            {{ risk.score }} - {{ risk.text }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-light text-secondary border">Not Analyzed</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-center">
+                                    <a href="{{ url_for('user.claim_details', claim_id=claim.id) }}" 
+                                       class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1" style="font-size: 0.8rem;">
+                                        <i class="fas fa-eye me-1"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="icon-square-dashboard bg-light mx-auto mb-3"><i class="fas fa-file-invoice text-muted"></i></div>
+                    <h5 class="text-dark fw-bold mb-2">No claims submitted yet</h5>
+                    <p class="text-secondary mb-4">Get started by submitting your first insurance claim.</p>
+                    <a href="{{ url_for('user.new_claim') }}" class="btn btn-teal">
+                        Submit Your First Claim
                     </a>
                 </div>
-                <div class="card-body">
-                    {% if claims %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Claim ID</th>
-                                        <th>Type</th>
-                                        <th>Amount</th>
-                                        <th>Submitted</th>
-                                        <th>Status</th>
-                                        <th>Risk Score</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for claim in claims %}
-                                    <tr>
-                                        <td><strong>#{{ claim.id }}</strong></td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ claim.claim_type|title }}</span>
-                                        </td>
-                                        <td>{{ format_currency(claim.amount) }}</td>
-                                        <td>{{ claim.submission_date.strftime('%d %b %Y') }}</td>
-                                        <td>
-                                            <span class="badge status-badge" data-status="{{ claim.status }}">
-                                                {{ claim.status|replace('_', ' ')|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if claim.fraud_score is not none %}
-                                                {% set risk = format_risk_score(claim.fraud_score) %}
-                                                <span class="badge risk-badge" data-risk-score="{{ claim.fraud_score }}">
-                                                    {{ risk.score }} - {{ risk.text }}
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Not Analyzed</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{{ url_for('user.claim_details', claim_id=claim.id) }}" 
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> View
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No claims submitted yet</h5>
-                            <p class="text-muted">Get started by submitting your first insurance claim</p>
-                            <a href="{{ url_for('user.new_claim') }}" class="btn btn-primary mt-2">
-                                Submit Your First Claim
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row mt-4">
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-file-medical fa-2x text-primary mb-3"></i>
-                    <h5>Submit Claim</h5>
-                    <p class="text-muted">Submit a new insurance claim with supporting documents</p>
-                    <a href="{{ url_for('user.new_claim') }}" class="btn btn-outline-primary">Get Started</a>
-                </div>
+    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-bolt text-warning me-2"></i>Quick Actions</h6>
+    <div class="grid-3-cols pb-4">
+        
+        <div class="action-card p-4 d-flex flex-column align-items-center text-center">
+            <div class="icon-square-dashboard bg-teal-soft mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                <i class="fas fa-file-medical"></i>
             </div>
+            <h5 class="fw-bold text-dark mb-2">Submit Claim</h5>
+            <p class="text-secondary small mb-4 flex-grow-1">Submit a new insurance claim securely with supporting documents.</p>
+            <a href="{{ url_for('user.new_claim') }}" class="btn btn-outline-teal w-100 rounded-pill">Get Started</a>
         </div>
         
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-history fa-2x text-info mb-3"></i>
-                    <h5>Claim History</h5>
-                    <p class="text-muted">View your complete claim history and status updates</p>
-                    <a href="{{ url_for('user.view_claims') }}" class="btn btn-outline-info">View History</a>
-                </div>
+        <div class="action-card p-4 d-flex flex-column align-items-center text-center">
+            <div class="icon-square-dashboard bg-info-soft mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                <i class="fas fa-history"></i>
             </div>
+            <h5 class="fw-bold text-dark mb-2">Claim History</h5>
+            <p class="text-secondary small mb-4 flex-grow-1">View your complete claim history and track real-time status updates.</p>
+            <a href="{{ url_for('user.view_claims') }}" class="btn btn-outline-teal w-100 rounded-pill" style="color: #0dcaf0; border-color: #0dcaf0;">View History</a>
         </div>
         
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-user-circle fa-2x text-success mb-3"></i>
-                    <h5>Profile Settings</h5>
-                    <p class="text-muted">Update your personal information and preferences</p>
-                    <a href="{{ url_for('user.profile') }}" class="btn btn-outline-success">Edit Profile</a>
-                </div>
+        <div class="action-card p-4 d-flex flex-column align-items-center text-center">
+            <div class="icon-square-dashboard bg-success-soft mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                <i class="fas fa-user-circle"></i>
             </div>
+            <h5 class="fw-bold text-dark mb-2">Profile Settings</h5>
+            <p class="text-secondary small mb-4 flex-grow-1">Update your personal information, security credentials, and preferences.</p>
+            <a href="{{ url_for('user.profile') }}" class="btn btn-outline-teal w-100 rounded-pill" style="color: #198754; border-color: #198754;">Edit Profile</a>
         </div>
+        
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Initialize risk score badges and status badges
+    // Initialize risk score badges and status badges (Functionality Untouched)
     document.addEventListener('DOMContentLoaded', function() {
         updateRiskScoreColors();
         updateStatusBadges();

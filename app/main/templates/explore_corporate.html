@@ -1,0 +1,696 @@
+{% extends "base.html" %}
+
+{% block title %}Explore - RiskRadar{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/corporate-theme.css') }}" rel="stylesheet">
+<style>
+    /* ===== CORPORATE EXPLORE PAGE ===== */
+    
+    .explore-container {
+        display: flex;
+        min-height: calc(100vh - 80px);
+        background-color: #f8f9fa;
+        margin-top: 80px;
+    }
+    
+    /* Left Sidebar Navigation */
+    .explore-sidebar {
+        display: none;
+    }
+    
+    .sidebar-nav {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        padding: 0 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .sidebar-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        color: #495057;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 250ms ease-in-out;
+        cursor: pointer;
+        background-color: #f8f9fa;
+    }
+    
+    .sidebar-nav-item:hover {
+        background-color: #e9ecef;
+        color: #003d33;
+    }
+    
+    .sidebar-nav-item.active {
+        background-color: rgba(0, 61, 51, 0.15);
+        color: #003d33;
+        border: 1px solid #003d33;
+    }
+    
+    .sidebar-nav-item i {
+        width: 16px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+    
+    .sidebar-section-title {
+        display: none;
+    }
+    
+    /* Main Content Area */
+    .explore-main {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 280px;
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+    
+    .explore-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .explore-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #212529;
+    }
+    
+    .explore-search {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .search-input {
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        width: 300px;
+        transition: all 250ms ease-in-out;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #003d33;
+        box-shadow: 0 0 0 3px rgba(0, 61, 51, 0.1);
+    }
+    
+    /* Tabs Navigation */
+    .explore-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 2rem;
+    }
+    
+    .explore-tab {
+        padding: 1rem 1.5rem;
+        color: #6c757d;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        transition: all 250ms ease-in-out;
+        position: relative;
+        bottom: -2px;
+    }
+    
+    .explore-tab:hover {
+        color: #003d33;
+    }
+    
+    .explore-tab.active {
+        color: #003d33;
+        border-bottom-color: #003d33;
+    }
+    
+    /* Content Grid */
+    .explore-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 1400px) {
+        .explore-content {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+    }
+    
+    @media (max-width: 1024px) {
+        .explore-content {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .explore-content {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .explore-content {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .explore-card {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 250ms ease-in-out;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .explore-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: #dee2e6;
+        transform: translateY(-2px);
+    }
+    
+    .card-header-image {
+        width: 100%;
+        height: 160px;
+        background: linear-gradient(135deg, #003d33 0%, #005247 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .card-category {
+        display: inline-block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #003d33;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background-color: rgba(0, 61, 51, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        width: fit-content;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+    
+    .card-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+        flex: 1;
+        line-height: 1.5;
+    }
+    
+    .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        font-size: 0.85rem;
+        color: #adb5bd;
+    }
+    
+    .card-action {
+        color: #003d33;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 250ms ease-in-out;
+    }
+    
+    .card-action:hover {
+        color: #005247;
+    }
+    
+    /* Right Utility Rail */
+    .explore-rail {
+        width: 280px;
+        background-color: #ffffff;
+        border-left: 1px solid #e9ecef;
+        padding: 2rem 1.5rem;
+        overflow-y: auto;
+        position: fixed;
+        height: calc(100vh - 80px);
+        right: 0;
+        top: 80px;
+    }
+    
+    .rail-section {
+        margin-bottom: 2rem;
+    }
+    
+    .rail-section-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #adb5bd;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .filter-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .filter-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #003d33;
+    }
+    
+    .filter-item label {
+        font-size: 0.9rem;
+        color: #495057;
+        cursor: pointer;
+        margin: 0;
+        flex: 1;
+    }
+    
+    .filter-item input[type="checkbox"]:checked + label {
+        color: #003d33;
+        font-weight: 600;
+    }
+    
+    .sort-dropdown {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #495057;
+        background-color: #ffffff;
+        cursor: pointer;
+        transition: all 250ms ease-in-out;
+    }
+    
+    .sort-dropdown:focus {
+        outline: none;
+        border-color: #003d33;
+        box-shadow: 0 0 0 3px rgba(0, 61, 51, 0.1);
+    }
+    
+    .featured-widget {
+        background: linear-gradient(135deg, #003d33 0%, #005247 100%);
+        border-radius: 8px;
+        padding: 1.5rem;
+        color: #ffffff;
+        text-align: center;
+    }
+    
+    .featured-widget-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .featured-widget-text {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        opacity: 0.95;
+    }
+    
+    .featured-widget-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #ffffff;
+        color: #003d33;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 250ms ease-in-out;
+    }
+    
+    .featured-widget-btn:hover {
+        background-color: #f8f9fa;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1400px) {
+        .explore-rail {
+            width: 240px;
+            padding: 1.5rem 1rem;
+        }
+        
+        .explore-main {
+            margin-right: 240px;
+        }
+    }
+    
+    @media (max-width: 1024px) {
+        .explore-sidebar {
+            width: 200px;
+        }
+        
+        .explore-main {
+            margin-left: 200px;
+            margin-right: 0;
+            padding: 1.5rem;
+        }
+        
+        .explore-rail {
+            display: none;
+        }
+        
+        .explore-content {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .explore-container {
+            flex-direction: column;
+        }
+        
+        .explore-sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            top: 0;
+            border-right: none;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 0;
+        }
+        
+        .sidebar-nav {
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 0 1rem;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-nav-item {
+            flex: 0 1 auto;
+            padding: 0.5rem 1rem;
+        }
+        
+        .sidebar-section-title {
+            display: none;
+        }
+        
+        .explore-main {
+            margin-left: 0;
+            margin-right: 0;
+            padding: 1rem;
+        }
+        
+        .explore-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .explore-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .explore-search {
+            width: 100%;
+            flex-direction: column;
+        }
+        
+        .search-input {
+            width: 100%;
+        }
+        
+        .explore-content {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+        
+        .explore-tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .explore-main {
+            padding: 1rem 0.75rem;
+        }
+        
+        .explore-header h1 {
+            font-size: 1.25rem;
+        }
+        
+        .explore-tab {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .explore-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .card-header-image {
+            height: 120px;
+            font-size: 2rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="explore-container">
+    <!-- Left Sidebar Navigation -->
+    <aside class="explore-sidebar">
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">Categories</div>
+            <a href="#" class="sidebar-nav-item active">
+                <i class="fas fa-star"></i>
+                <span>Featured</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-fire"></i>
+                <span>Trending</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-clock"></i>
+                <span>Recent</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-heart"></i>
+                <span>Saved</span>
+            </a>
+            
+            <div class="sidebar-section-title">Resources</div>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-book"></i>
+                <span>Documentation</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Tutorials</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-comments"></i>
+                <span>Community</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <!-- Main Content Area -->
+    <main class="explore-main">
+        <!-- Header -->
+        <div class="explore-header">
+            <h1>Explore</h1>
+            <div class="explore-search">
+                <input type="text" class="search-input" placeholder="Search resources...">
+                <button class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="explore-tabs">
+            <a href="#" class="explore-tab active">All Resources</a>
+            <a href="#" class="explore-tab">Articles</a>
+            <a href="#" class="explore-tab">Guides</a>
+            <a href="#" class="explore-tab">Videos</a>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="explore-content">
+            <!-- Card 1 -->
+            <div class="explore-card">
+                <div class="card-header-image">📚</div>
+                <div class="card-body">
+                    <div class="card-category">Guide</div>
+                    <div class="card-title">Getting Started with RiskRadar</div>
+                    <div class="card-description">Learn the basics of fraud detection and how to set up your first analysis.</div>
+                    <div class="card-meta">
+                        <span>5 min read</span>
+                        <a href="#" class="card-action">Read →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="explore-card">
+                <div class="card-header-image">🎓</div>
+                <div class="card-body">
+                    <div class="card-category">Tutorial</div>
+                    <div class="card-title">Advanced AI Analysis Techniques</div>
+                    <div class="card-description">Deep dive into machine learning models and how they detect fraudulent patterns.</div>
+                    <div class="card-meta">
+                        <span>12 min read</span>
+                        <a href="#" class="card-action">Read →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="explore-card">
+                <div class="card-header-image">🔍</div>
+                <div class="card-body">
+                    <div class="card-category">Article</div>
+                    <div class="card-title">Understanding Fraud Detection Accuracy</div>
+                    <div class="card-description">Explore metrics, benchmarks, and best practices for evaluating detection systems.</div>
+                    <div class="card-meta">
+                        <span>8 min read</span>
+                        <a href="#" class="card-action">Read →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 4 -->
+            <div class="explore-card">
+                <div class="card-header-image">🎬</div>
+                <div class="card-body">
+                    <div class="card-category">Video</div>
+                    <div class="card-title">RiskRadar Platform Overview</div>
+                    <div class="card-description">Watch a comprehensive walkthrough of the RiskRadar platform and its key features.</div>
+                    <div class="card-meta">
+                        <span>15 min video</span>
+                        <a href="#" class="card-action">Watch →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 5 -->
+            <div class="explore-card">
+                <div class="card-header-image">⚙️</div>
+                <div class="card-body">
+                    <div class="card-category">Guide</div>
+                    <div class="card-title">API Integration Guide</div>
+                    <div class="card-description">Learn how to integrate RiskRadar's powerful API into your existing systems.</div>
+                    <div class="card-meta">
+                        <span>10 min read</span>
+                        <a href="#" class="card-action">Read →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 6 -->
+            <div class="explore-card">
+                <div class="card-header-image">📊</div>
+                <div class="card-body">
+                    <div class="card-category">Article</div>
+                    <div class="card-title">Case Study: Enterprise Fraud Prevention</div>
+                    <div class="card-description">Real-world example of how a major insurance company reduced fraud by 45%.</div>
+                    <div class="card-meta">
+                        <span>6 min read</span>
+                        <a href="#" class="card-action">Read →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Right Utility Rail -->
+    <aside class="explore-rail">
+        <!-- Sort & Filter -->
+        <div class="rail-section">
+            <div class="rail-section-title">Sort By</div>
+            <select class="sort-dropdown">
+                <option>Most Recent</option>
+                <option>Most Popular</option>
+                <option>Most Viewed</option>
+                <option>Trending</option>
+            </select>
+        </div>
+        
+        <!-- Filters -->
+        <div class="rail-section">
+            <div class="rail-section-title">Content Type</div>
+            <div class="filter-group">
+                <div class="filter-item">
+                    <input type="checkbox" id="filter-guide" checked>
+                    <label for="filter-guide">Guides</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="filter-article" checked>
+                    <label for="filter-article">Articles</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="filter-video" checked>
+                    <label for="filter-video">Videos</label>
+                </div>
+                <div class="filter-item">
+                    <input type="checkbox" id="filter-tutorial" checked>
+                    <label for="filter-tutorial">Tutorials</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Featured Widget -->
+        <div class="rail-section">
+            <div class="featured-widget">
+                <div class="featured-widget-title">Featured Resource</div>
+                <div class="featured-widget-text">
+                    Discover our comprehensive guide to implementing fraud detection in your organization.
+                </div>
+                <button class="featured-widget-btn">Learn More</button>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}

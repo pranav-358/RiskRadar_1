@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - RiskRadar{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/corporate-theme.css') }}" rel="stylesheet">
+<style>
+    /* ===== CORPORATE LOGIN PAGE ===== */
+    
+    .login-container {
+        display: flex;
+        min-height: 100vh;
+        background-color: #f8f9fa;
+    }
+    
+    /* Left Side - Form */
+    .login-form-section {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        background-color: #ffffff;
+    }
+    
+    .login-form-wrapper {
+        width: 100%;
+        max-width: 420px;
+    }
+    
+    .login-header {
+        margin-bottom: 2.5rem;
+    }
+    
+    .login-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-header p {
+        font-size: 0.95rem;
+        color: #6c757d;
+        margin: 0;
+    }
+    
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-group label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .form-group input {
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: all 250ms ease-in-out;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #003d33;
+        box-shadow: 0 0 0 3px rgba(0, 61, 51, 0.1);
+    }
+    
+    .form-group input::placeholder {
+        color: #adb5bd;
+    }
+    
+    .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-footer a {
+        color: #003d33;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 250ms ease-in-out;
+    }
+    
+    .form-footer a:hover {
+        color: #005247;
+    }
+    
+    .form-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #003d33;
+    }
+    
+    .form-checkbox label {
+        cursor: pointer;
+        margin: 0;
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .login-btn {
+        padding: 0.875rem 1.5rem;
+        background-color: #003d33;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 250ms ease-in-out;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    
+    .login-btn:hover {
+        background-color: #005247;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-btn:active {
+        background-color: #006b5f;
+    }
+    
+    .login-divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        color: #adb5bd;
+        font-size: 0.875rem;
+    }
+    
+    .login-divider::before,
+    .login-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background-color: #dee2e6;
+    }
+    
+    .social-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .social-btn {
+        padding: 0.75rem 1rem;
+        background-color: #ffffff;
+        color: #212529;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 250ms ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    
+    .social-btn:hover {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+    }
+    
+    .signup-link {
+        text-align: center;
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 1.5rem;
+    }
+    
+    .signup-link a {
+        color: #003d33;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Right Side - Branding */
+    .login-branding-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        background-color: #003d33;
+        color: #ffffff;
+    }
+    
+    .branding-content {
+        max-width: 450px;
+        text-align: center;
+    }
+    
+    .branding-heading {
+        font-size: 2.25rem;
+        font-weight: 700;
+        line-height: 1.3;
+        margin-bottom: 2rem;
+        color: #ffffff;
+    }
+    
+    .testimonial-block {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .testimonial-quote {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        color: rgba(255, 255, 255, 0.95);
+        font-style: italic;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .testimonial-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .testimonial-info {
+        text-align: left;
+    }
+    
+    .testimonial-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #ffffff;
+    }
+    
+    .testimonial-role {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .trusted-by {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .trusted-by-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1rem;
+    }
+    
+    .partner-logos {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    
+    .partner-logo {
+        width: 100%;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+        .login-form-section,
+        .login-branding-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .login-form-wrapper {
+            max-width: 380px;
+        }
+        
+        .branding-heading {
+            font-size: 1.875rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .login-container {
+            flex-direction: column;
+        }
+        
+        .login-form-section,
+        .login-branding-section {
+            flex: none;
+            width: 100%;
+            min-height: auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .login-form-section {
+            order: 2;
+        }
+        
+        .login-branding-section {
+            order: 1;
+            min-height: 300px;
+        }
+        
+        .branding-heading {
+            font-size: 1.5rem;
+        }
+        
+        .partner-logos {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .login-form-wrapper {
+            max-width: 100%;
+        }
+        
+        .login-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .branding-heading {
+            font-size: 1.25rem;
+        }
+        
+        .testimonial-block {
+            padding: 1rem;
+        }
+        
+        .partner-logos {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .partner-logo {
+            height: 36px;
+            font-size: 0.7rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <!-- Left Side - Form -->
+    <div class="login-form-section">
+        <div class="login-form-wrapper">
+            <!-- Header -->
+            <div class="login-header">
+                <h1>Welcome Back</h1>
+                <p>Sign in to your RiskRadar account</p>
+            </div>
+            
+            <!-- Form -->
+            <form action="" method="POST" class="login-form">
+                {{ form.hidden_tag() }}
+                
+                <!-- Email/Username -->
+                <div class="form-group">
+                    <label for="username">Email or Username</label>
+                    {{ form.username(class="form-control", id="username", placeholder="Enter your email or username", autocomplete="username") }}
+                    {% if form.username.errors %}
+                        <div style="color: #a4161a; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.username.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    {{ form.password(class="form-control", id="password", placeholder="Enter your password", autocomplete="current-password") }}
+                    {% if form.password.errors %}
+                        <div style="color: #a4161a; font-size: 0.875rem; margin-top: 0.25rem;">
+                            {% for error in form.password.errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Remember & Forgot -->
+                <div class="form-footer">
+                    <div class="form-checkbox">
+                        {{ form.remember_me(id="rememberMe") }}
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <a href="#">Forgot password?</a>
+                </div>
+                
+                <!-- Sign In Button -->
+                <button type="submit" class="login-btn" style="width: 100%;">Sign In</button>
+            </form>
+            
+            <!-- Divider -->
+            <div class="login-divider">or</div>
+            
+            <!-- Social Buttons -->
+            <div class="social-buttons">
+                <button type="button" class="social-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    Continue with Google
+                </button>
+                <button type="button" class="social-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    Continue with Apple
+                </button>
+            </div>
+            
+            <!-- Sign Up Link -->
+            <div class="signup-link">
+                Don't have an account? <a href="{{ url_for('main.register') }}">Sign up</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side - Branding -->
+    <div class="login-branding-section">
+        <div class="branding-content">
+            <!-- Main Heading -->
+            <h2 class="branding-heading">Revolutionize Fraud Detection with Smarter Automation</h2>
+            
+            <!-- Testimonial -->
+            <div class="testimonial-block">
+                <p class="testimonial-quote">
+                    "RiskRadar has transformed our fraud detection process. It's reliable, efficient, and ensures our claims are always top-notch."
+                </p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">👤</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">Michael Carter</div>
+                        <div class="testimonial-role">Insurance Officer at CoreInsure</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trusted By -->
+            <div class="trusted-by">
+                <div class="trusted-by-label">Trusted by leading companies</div>
+                <div class="partner-logos">
+                    <div class="partner-logo">Partner 1</div>
+                    <div class="partner-logo">Partner 2</div>
+                    <div class="partner-logo">Partner 3</div>
+                    <div class="partner-logo">Partner 4</div>
+                    <div class="partner-logo">Partner 5</div>
+                    <div class="partner-logo">Partner 6</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

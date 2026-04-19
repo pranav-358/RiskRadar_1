@@ -35,11 +35,14 @@ class PredictiveScoringModel:
                     with open(features_path, 'r') as f:
                         self.feature_names = json.load(f)
                 
-                self.is_trained = True
-                logger.info("✓ Trained ML model loaded successfully")
-                logger.info(f"  Model: Gradient Boosting Classifier")
-                logger.info(f"  Features: {len(self.feature_names)}")
-                return True
+                # CRITICAL: The pre-trained model returns probabilities in wrong scale
+                # It returns values like 1.5e-05 instead of 0-100 range
+                # This is a model calibration issue - disable it and use rule-based instead
+                logger.warning("⚠️ Pre-trained ML model found but DISABLED due to calibration issues")
+                logger.warning("   Model returns probabilities in wrong scale (e.g., 1.5e-05 instead of 0-100)")
+                logger.warning("   Using RULE-BASED prediction instead for production-ready results")
+                self.is_trained = False  # Force rule-based prediction
+                return False
             else:
                 logger.warning("⚠️ No trained model found. Using rule-based fallback.")
                 logger.warning(f"  Expected model at: {model_path}")
@@ -69,16 +72,24 @@ class PredictiveScoringModel:
             float: Fraud probability (0-100 scale)
         """
         try:
+            logger.info("=" * 80)
+            logger.info("PREDICTIVE MODEL PREDICTION")
+            logger.info("=" * 80)
+            logger.info(f"Model Status: Trained={self.is_trained}, Model={self.model is not None}")
+            
             if self.is_trained and self.model is not None:
                 # Use trained ML model
+                logger.info("Using TRAINED ML Model")
                 return self._ml_prediction(claim_data)
             else:
                 # Fallback to rule-based prediction
-                logger.warning("Using rule-based prediction (model not trained)")
+                logger.info("Using RULE-BASED Prediction (ML model not available)")
                 return self._rule_based_prediction(claim_data)
                 
         except Exception as e:
             logger.error(f"Prediction error: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             # Return moderate risk on error
             return 50.0
     
@@ -176,47 +187,111 @@ class PredictiveScoringModel:
         """
         score = 50.0  # Start with neutral score
         
+        logger.info("=" * 60)
+        logger.info("RULE-BASED PREDICTION ANALYSIS")
+        logger.info("=" * 60)
+        
         # Document verification score (most important)
         doc_score = claim_data.get('document_verification_score', 50)
+        logger.info(f"Document Verification Score: {doc_score}")
         if doc_score < 40:
             score += 30  # Very suspicious
+            logger.info(f"  → Low document score: +30 points (very suspicious)")
         elif doc_score < 60:
             score += 20  # Suspicious
+            logger.info(f"  → Medium-low document score: +20 points (suspicious)")
         elif doc_score > 80:
             score -= 15  # Good documents
+            logger.info(f"  → High document score: -15 points (good documents)")
+        else:
+            logger.info(f"  → Neutral document score: no change")
         
         # Behavioral analysis
         behavioral_score = claim_data.get('behavioral_anomaly_score', 50)
+        logger.info(f"Behavioral Anomaly Score: {behavioral_score}")
         if behavioral_score > 70:
             score += 15
+            logger.info(f"  → High behavioral anomaly: +15 points")
         elif behavioral_score < 30:
             score -= 10
+            logger.info(f"  → Low behavioral anomaly: -10 points")
+        else:
+            logger.info(f"  → Normal behavioral score: no change")
         
         # Hidden links
         link_score = claim_data.get('hidden_link_score', 50)
+        logger.info(f"Hidden Link Score: {link_score}")
         if link_score > 70:
             score += 15
+            logger.info(f"  → High connection risk: +15 points")
         elif link_score < 30:
             score -= 10
+            logger.info(f"  → Low connection risk: -10 points")
+        else:
+            logger.info(f"  → Normal connection score: no change")
         
         # Claim amount
         amount = claim_data.get('claim_amount', 0)
-        if amount > 500000:
-            score += 10
-        elif amount > 1000000:
+        logger.info(f"Claim Amount: ₹{amount:,.2f}")
+        if amount > 1000000:
             score += 15
+            logger.info(f"  → Very high amount (>₹1M): +15 points")
+        elif amount > 500000:
+            score += 10
+            logger.info(f"  → High amount (>₹500K): +10 points")
+        elif amount > 100000:
+            logger.info(f"  → Medium amount: no change")
+        else:
+            logger.info(f"  → Low amount: no change")
         
         # Number of documents
         documents = claim_data.get('documents', [])
-        if len(documents) < 2:
+        doc_count = len(documents) if documents else 0
+        logger.info(f"Number of Documents: {doc_count}")
+        if doc_count < 1:
+            score += 15  # No documents - very suspicious
+            logger.info(f"  → No documents: +15 points (very suspicious)")
+        elif doc_count < 2:
             score += 10  # Too few documents
-        elif len(documents) >= 4:
+            logger.info(f"  → Only 1 document: +10 points (too few)")
+        elif doc_count >= 4:
             score -= 5  # Good documentation
+            logger.info(f"  → Good documentation (4+ docs): -5 points")
+        else:
+            logger.info(f"  → Adequate documentation: no change")
+        
+        # Claim type analysis
+        claim_type = claim_data.get('claim_type', 'unknown').lower()
+        logger.info(f"Claim Type: {claim_type}")
+        
+        # Policy type analysis
+        policy_type = claim_data.get('policy_type', 'unknown').lower()
+        logger.info(f"Policy Type: {policy_type}")
+        
+        # Incident location
+        incident_location = claim_data.get('incident_location', 'unknown')
+        logger.info(f"Incident Location: {incident_location}")
+        
+        # Description length
+        description = claim_data.get('description', '')
+        desc_length = len(description) if description else 0
+        logger.info(f"Description Length: {desc_length} characters")
+        if desc_length < 20:
+            score += 10
+            logger.info(f"  → Very short description: +10 points (suspicious)")
+        elif desc_length < 50:
+            score += 5
+            logger.info(f"  → Short description: +5 points")
+        elif desc_length > 500:
+            score -= 5
+            logger.info(f"  → Detailed description: -5 points (good)")
         
         # Ensure score is in valid range
         score = max(0.0, min(100.0, score))
         
-        logger.info(f"Rule-based prediction: {score:.1f}/100")
+        logger.info("=" * 60)
+        logger.info(f"FINAL RULE-BASED PREDICTION: {score:.1f}/100")
+        logger.info("=" * 60)
         
         return score
     

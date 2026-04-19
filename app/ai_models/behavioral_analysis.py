@@ -226,13 +226,28 @@ class BehavioralAI:
             # Convert to 0-100 scale where higher = more anomalous
             iso_score_normalized = 50 + (iso_score[0] * 50) if iso_score[0] == -1 else 50
             
-            # Calculate LOF score (already returns negative values for outliers)
-            lof_score = self.models['lof'].fit_predict(processed_features)
-            lof_score_normalized = 50 + (lof_score[0] * 50) if lof_score[0] == -1 else 50
+            # Calculate LOF score with dynamic n_neighbors
+            # LOF requires n_neighbors < n_samples, so we need to handle single samples
+            n_samples = processed_features.shape[0]
+            n_neighbors = min(20, max(1, n_samples - 1))  # Ensure n_neighbors < n_samples
+            
+            try:
+                lof_model = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=0.1)
+                lof_score = lof_model.fit_predict(processed_features)
+                lof_score_normalized = 50 + (lof_score[0] * 50) if lof_score[0] == -1 else 50
+            except Exception as lof_error:
+                logger.warning(f"LOF calculation failed: {str(lof_error)}, using default score")
+                lof_score_normalized = 50
             
             # For DBSCAN, we'll use the cluster labels (-1 indicates outlier)
-            dbscan_labels = self.models['dbscan'].fit_predict(processed_features)
-            dbscan_score = 100 if dbscan_labels[0] == -1 else 0
+            # DBSCAN also needs at least min_samples points
+            try:
+                dbscan_model = DBSCAN(eps=0.5, min_samples=min(5, max(1, n_samples)))
+                dbscan_labels = dbscan_model.fit_predict(processed_features)
+                dbscan_score = 100 if dbscan_labels[0] == -1 else 0
+            except Exception as dbscan_error:
+                logger.warning(f"DBSCAN calculation failed: {str(dbscan_error)}, using default score")
+                dbscan_score = 0
             
             # Calculate statistical outliers
             statistical_scores = self._calculate_statistical_anomalies(features)

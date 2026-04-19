@@ -28,6 +28,42 @@ class IntegrationService:
             'explainable_ai': explainable_ai
         }
         logger.info("Integration Service initialized")
+        self._log_model_status()
+    
+    def _log_model_status(self):
+        """Log the status of all AI models"""
+        logger.info("=" * 80)
+        logger.info("AI MODELS STATUS CHECK")
+        logger.info("=" * 80)
+        
+        # Check predictive model
+        logger.info(f"Predictive Model:")
+        logger.info(f"  - Is Trained: {predictive_model.is_trained}")
+        logger.info(f"  - Model Loaded: {predictive_model.model is not None}")
+        logger.info(f"  - Scaler Loaded: {predictive_model.scaler is not None}")
+        logger.info(f"  - Feature Names: {len(predictive_model.feature_names)}")
+        
+        # Check behavioral AI
+        logger.info(f"Behavioral AI:")
+        logger.info(f"  - Models Initialized: {len(behavioral_ai.models) > 0}")
+        logger.info(f"  - Preprocessor: {behavioral_ai.preprocessor is not None}")
+        
+        # Check hidden link AI
+        logger.info(f"Hidden Link AI:")
+        logger.info(f"  - Graph Nodes: {len(hidden_link_ai.graph.nodes)}")
+        logger.info(f"  - Graph Edges: {len(hidden_link_ai.graph.edges)}")
+        logger.info(f"  - Known Fraudulent Entities: {len(hidden_link_ai.known_fraudulent_entities)}")
+        
+        # Check document verifier
+        logger.info(f"Document Verifier:")
+        logger.info(f"  - Fraud Patterns Loaded: {len(document_verifier.fraud_patterns) > 0}")
+        
+        # Check OCR processor
+        logger.info(f"OCR Processor:")
+        logger.info(f"  - EasyOCR Reader: {ocr_processor.reader is not None}")
+        logger.info(f"  - Tesseract Available: {ocr_processor.tesseract_available}")
+        
+        logger.info("=" * 80)
     
     def process_claim(self, claim_id):
         """
@@ -40,13 +76,24 @@ class IntegrationService:
             dict: Comprehensive analysis results
         """
         try:
+            logger.info("=" * 80)
+            logger.info(f"PROCESSING CLAIM {claim_id}")
+            logger.info("=" * 80)
+            
             # Retrieve claim from database
             claim = Claim.query.get(claim_id)
             if not claim:
                 raise ValueError(f"Claim {claim_id} not found")
             
+            logger.info(f"Claim Details:")
+            logger.info(f"  - User ID: {claim.user_id}")
+            logger.info(f"  - Amount: ₹{claim.amount:,.2f}")
+            logger.info(f"  - Type: {claim.claim_type}")
+            logger.info(f"  - Policy Type: {claim.policy_type}")
+            
             # Retrieve claim documents
             documents = Document.query.filter_by(claim_id=claim_id).all()
+            logger.info(f"  - Documents: {len(documents)}")
             
             # Prepare claim data for processing
             claim_data = self._prepare_claim_data(claim, documents)
@@ -55,34 +102,48 @@ class IntegrationService:
             results = {}
             
             # 1. Document Verification
+            logger.info("\n[1/5] Running Document Verification...")
             doc_results = self._process_documents(documents, claim_data)
             results['document_verification'] = doc_results
+            logger.info(f"  ✓ Document Authenticity Score: {doc_results['overall_authenticity_score']:.1f}/100")
             
             # 2. Behavioral Analysis
+            logger.info("\n[2/5] Running Behavioral Analysis...")
             user_history = self._get_user_claim_history(claim.user_id, claim_id)
+            logger.info(f"  - User History: {len(user_history)} previous claims")
             behavioral_results = behavioral_ai.analyze_behavior(claim_data, user_history)
             results['behavioral_analysis'] = behavioral_results
+            logger.info(f"  ✓ Behavioral Risk Score: {behavioral_results['behavioral_risk_score']:.1f}/100")
             
             # 3. Hidden Link Analysis
+            logger.info("\n[3/5] Running Hidden Link Analysis...")
             existing_claims = self._get_all_claims_for_network_analysis()
+            logger.info(f"  - Existing Claims in Network: {len(existing_claims)}")
             connection_results = hidden_link_ai.analyze_connections(claim_data, existing_claims)
             results['hidden_link_analysis'] = connection_results
+            logger.info(f"  ✓ Connection Risk Score: {connection_results['connection_risk_score']:.1f}/100")
             
             # 4. Predictive Scoring (integrate all previous results)
+            logger.info("\n[4/5] Running Predictive Scoring...")
             predictive_data = self._prepare_predictive_data(claim_data, results)
+            logger.info(f"  - Predictive Data Keys: {list(predictive_data.keys())}")
             fraud_probability = predictive_model.predict(predictive_data)
             results['predictive_scoring'] = {
                 'fraud_probability': fraud_probability,
                 'risk_category': self._categorize_risk(fraud_probability)
             }
+            logger.info(f"  ✓ Fraud Probability: {fraud_probability:.1f}/100")
+            logger.info(f"  ✓ Risk Category: {results['predictive_scoring']['risk_category']}")
             
             # 5. Explainable AI
+            logger.info("\n[5/5] Running Explainable AI...")
             explanation = explainable_ai.explain_prediction(
                 predictive_data, 
                 fraud_probability,
                 predictive_model.get_feature_importance()
             )
             results['explainable_ai'] = explanation
+            logger.info(f"  ✓ Explanation Generated")
             
             # Save results to database
             self._save_analysis_results(claim_id, results)
@@ -93,6 +154,11 @@ class IntegrationService:
             claim.fraud_score = fraud_probability
             db.session.commit()
             
+            logger.info("\n" + "=" * 80)
+            logger.info(f"CLAIM {claim_id} ANALYSIS COMPLETE")
+            logger.info(f"Final Risk Score: {fraud_probability:.1f}/100")
+            logger.info("=" * 80)
+            
             return {
                 'success': True,
                 'claim_id': claim_id,
@@ -102,6 +168,8 @@ class IntegrationService:
             
         except Exception as e:
             logger.error(f"Error processing claim {claim_id}: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {
                 'success': False,
                 'error': str(e),
@@ -177,7 +245,7 @@ class IntegrationService:
         """
         results = {
             'documents': [],
-            'overall_authenticity_score': 0,
+            'overall_authenticity_score': 75.0,  # Default to neutral-good score if no docs
             'any_tampered': False
         }
         
@@ -217,6 +285,10 @@ class IntegrationService:
         # Calculate overall document score
         if doc_scores:
             results['overall_authenticity_score'] = sum(doc_scores) / len(doc_scores)
+        else:
+            # No documents - set to neutral score
+            logger.warning("No documents provided for analysis - using default score")
+            results['overall_authenticity_score'] = 75.0
         
         return results
     

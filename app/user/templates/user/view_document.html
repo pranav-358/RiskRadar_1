@@ -2,164 +2,230 @@
 
 {% block title %}Document View - RiskRadar{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Corporate Deep Teal Theme */
+    :root {
+        --brand-teal: #008080; 
+        --brand-teal-dark: #005959;
+        --brand-teal-light: #e6f2f2;
+    }
+
+    /* THE MAGIC FIX: Forced 2-Column Grid */
+    .grid-2-cols-doc {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        align-items: start;
+    }
+
+    @media (max-width: 991px) {
+        .grid-2-cols-doc { grid-template-columns: 1fr; } /* Only stacks on true tablets/mobile */
+    }
+
+    /* Modern Minimalist Cards */
+    .detail-panel {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 128, 128, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+        height: 100%;
+    }
+    
+    .panel-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1.25rem 1.5rem;
+        background: #fafbfa;
+        display: flex;
+        align-items: center;
+    }
+    
+    .panel-body {
+        padding: 1.5rem;
+    }
+
+    /* Info Label Styling */
+    .info-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+    .info-value {
+        font-size: 1.05rem;
+        color: #212529;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+    .info-box {
+        background: #fcfdfe;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+    }
+    .info-box:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Analysis Score */
+    .authenticity-score {
+        font-size: 4rem;
+        line-height: 1;
+        letter-spacing: -1px;
+    }
+
+    /* Buttons */
+    .btn-teal { background-color: var(--brand-teal-dark); color: white; border: none; transition: all 0.2s; }
+    .btn-teal:hover { background-color: #004040; color: white; transform: translateY(-2px); }
+    .btn-outline-teal { border: 2px solid var(--brand-teal); color: var(--brand-teal); background: transparent; transition: all 0.2s; }
+    .btn-outline-teal:hover { background: var(--brand-teal-light); color: var(--brand-teal-dark); transform: translateY(-2px); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid py-4 px-lg-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <h1 class="h3 fw-bold">Document Details</h1>
-            <p class="text-muted">View document information and analysis results</p>
+            <h1 class="h3 fw-bold text-dark mb-1">Document Details</h1>
+            <p class="text-secondary mb-0">View document information and analysis results</p>
         </div>
-        <a href="{{ url_for('user.claim_details', claim_id=document.claim_id) }}" class="btn btn-outline-secondary">
+        <a href="{{ url_for('user.claim_details', claim_id=document.claim_id) }}" class="btn btn-outline-secondary fw-medium rounded-pill px-4">
             <i class="fas fa-arrow-left me-2"></i>Back to Claim
         </a>
     </div>
 
-    <div class="row">
-        <!-- Document Info -->
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Document Information
-                    </h5>
+    <div class="grid-2-cols-doc">
+        
+        <div class="detail-panel">
+            <div class="panel-header">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-info-circle text-teal me-2"></i>Document Information
+                </h5>
+            </div>
+            <div class="panel-body">
+                <div class="info-box">
+                    <div class="info-label">File Name</div>
+                    <p class="info-value d-flex align-items-center">
+                        <i class="fas fa-file-alt text-secondary me-2"></i>{{ document.original_filename }}
+                    </p>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-4">
-                            <label class="form-label fw-semibold">File Name</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <p class="mb-0">{{ document.original_filename }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-sm-4">
-                            <label class="form-label fw-semibold">Document Type</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <p class="mb-0">{{ document.document_type|title }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-sm-4">
-                            <label class="form-label fw-semibold">File Size</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <p class="mb-0">{{ (document.file_size / 1024)|round(2) }} KB</p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-sm-4">
-                            <label class="form-label fw-semibold">Upload Date</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <p class="mb-0">{{ document.upload_date.strftime('%d %b %Y %H:%M') }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-sm-4">
-                            <label class="form-label fw-semibold">MIME Type</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <p class="mb-0">{{ document.mime_type }}</p>
-                        </div>
-                    </div>
+                
+                <div class="info-box">
+                    <div class="info-label">Document Type</div>
+                    <p class="info-value">{{ document.document_type|title }}</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-label">File Size</div>
+                    <p class="info-value">{{ (document.file_size / 1024)|round(2) }} KB</p>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-label">Upload Date</div>
+                    <p class="info-value">{{ document.upload_date.strftime('%d %b %Y %H:%M') }}</p>
+                </div>
+                
+                <div class="info-box border-0 bg-transparent px-0 pb-0">
+                    <div class="info-label">MIME Type</div>
+                    <p class="info-value text-secondary fs-6">{{ document.mime_type }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Analysis Results -->
-        <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Analysis Results
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if document.analysis_results %}
-                        {% set analysis = document.analysis_results|from_json %}
-                        
-                        <div class="text-center mb-3">
-                            <label class="form-label fw-semibold">Authenticity Score</label>
-                            <div class="authenticity-score mb-2">
-                                {% if analysis.authenticity_score >= 80 %}
-                                    <span class="display-4 fw-bold text-success">{{ analysis.authenticity_score }}</span>
-                                {% elif analysis.authenticity_score >= 60 %}
-                                    <span class="display-4 fw-bold text-warning">{{ analysis.authenticity_score }}</span>
-                                {% else %}
-                                    <span class="display-4 fw-bold text-danger">{{ analysis.authenticity_score }}</span>
-                                {% endif %}
-                                <span class="text-muted">/100</span>
-                            </div>
-                            
-                            {% if analysis.is_tampered %}
-                                <span class="badge bg-danger">Potential Tampering Detected</span>
+        <div class="detail-panel">
+            <div class="panel-header">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fas fa-chart-line text-teal me-2"></i>Analysis Results
+                </h5>
+            </div>
+            <div class="panel-body">
+                {% if document.analysis_results %}
+                    {% set analysis = document.analysis_results|from_json %}
+                    
+                    <div class="text-center mb-4">
+                        <div class="info-label mb-2 text-dark">Authenticity Score</div>
+                        <div class="mb-2">
+                            {% if analysis.authenticity_score >= 80 %}
+                                <span class="authenticity-score fw-bolder text-success">{{ analysis.authenticity_score }}</span>
+                            {% elif analysis.authenticity_score >= 60 %}
+                                <span class="authenticity-score fw-bolder text-warning">{{ analysis.authenticity_score }}</span>
                             {% else %}
-                                <span class="badge bg-success">Document Appears Authentic</span>
+                                <span class="authenticity-score fw-bolder text-danger">{{ analysis.authenticity_score }}</span>
                             {% endif %}
+                            <span class="text-muted fw-bold fs-5">/100</span>
                         </div>
                         
-                        {% if analysis.findings %}
-                            <div class="mt-3">
-                                <label class="form-label fw-semibold">Key Findings:</label>
-                                <ul class="list-unstyled">
-                                    {% for finding in analysis.findings[:5] %}
-                                    <li class="mb-1">
-                                        <i class="fas fa-info-circle text-info me-2"></i>
-                                        {{ finding }}
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
+                        {% if analysis.is_tampered %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-2 fs-6 shadow-sm">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Potential Tampering Detected
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fs-6 shadow-sm">
+                                <i class="fas fa-check-circle me-1"></i> Document Appears Authentic
+                            </span>
                         {% endif %}
-                    {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">Analysis in progress</p>
-                            <small class="text-muted">This document is being analyzed by our AI system</small>
+                    </div>
+                    
+                    {% if analysis.findings %}
+                        <div class="bg-light rounded-3 p-3 mt-4 border">
+                            <div class="info-label mb-2 text-dark">Key Findings:</div>
+                            <ul class="list-unstyled mb-0">
+                                {% for finding in analysis.findings[:5] %}
+                                <li class="mb-2 d-flex align-items-start">
+                                    <i class="fas fa-info-circle text-teal mt-1 me-2" style="font-size: 14px;"></i>
+                                    <span class="small text-secondary fw-medium">{{ finding }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     {% endif %}
-                </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-teal opacity-50 mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">Analysis in Progress</h6>
+                        <p class="text-muted small mb-0">This document is being analyzed by our AI system.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Document Preview -->
-    <div class="card">
-        <div class="card-header bg-white">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-eye me-2"></i>Document Preview
+    <div class="detail-panel mb-4">
+        <div class="panel-header">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="fas fa-eye text-teal me-2"></i>Document Preview
             </h5>
         </div>
-        <div class="card-body">
+        <div class="panel-body bg-light text-center">
             {% if document.mime_type.startswith('image/') %}
-                <div class="text-center">
-                    <img src="{{ url_for('static', filename=document.file_path) }}" 
-                         alt="Document preview" 
-                         class="img-fluid rounded shadow-sm"
-                         style="max-height: 500px;">
-                </div>
+                <img src="{{ url_for('static', filename=document.file_path) }}" 
+                     alt="Document preview" 
+                     class="img-fluid rounded border shadow-sm bg-white p-2"
+                     style="max-height: 600px; object-fit: contain;">
             {% elif document.mime_type == 'application/pdf' %}
-                <div class="text-center">
-                    <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
-                    <p class="text-muted">PDF documents can be downloaded for viewing</p>
+                <div class="py-5 bg-white rounded border shadow-sm mx-auto" style="max-width: 500px;">
+                    <i class="fas fa-file-pdf fa-5x text-danger mb-4"></i>
+                    <h5 class="fw-bold text-dark">PDF Document</h5>
+                    <p class="text-muted mb-4">PDF documents can be downloaded for viewing</p>
                     <a href="{{ url_for('static', filename=document.file_path) }}" 
-                       class="btn btn-primary" download>
+                       class="btn btn-teal rounded-pill px-4" download>
                         <i class="fas fa-download me-2"></i>Download PDF
                     </a>
                 </div>
             {% else %}
-                <div class="text-center">
-                    <i class="fas fa-file fa-5x text-secondary mb-3"></i>
-                    <p class="text-muted">Preview not available for this file type</p>
+                <div class="py-5 bg-white rounded border shadow-sm mx-auto" style="max-width: 500px;">
+                    <i class="fas fa-file fa-5x text-secondary mb-4"></i>
+                    <h5 class="fw-bold text-dark">File Preview Unavailable</h5>
+                    <p class="text-muted mb-4">Preview not available for this specific file type</p>
                     <a href="{{ url_for('static', filename=document.file_path) }}" 
-                       class="btn btn-outline-primary" download>
+                       class="btn btn-outline-teal rounded-pill px-4" download>
                         <i class="fas fa-download me-2"></i>Download File
                     </a>
                 </div>
@@ -167,12 +233,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    .authenticity-score {
-        font-size: 2.5rem;
-    }
-</style>
 {% endblock %}

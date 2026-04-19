@@ -1,0 +1,641 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - RiskRadar{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/corporate-theme.css') }}" rel="stylesheet">
+<style>
+    /* ===== CORPORATE DASHBOARD PAGE ===== */
+    
+    .dashboard-container {
+        display: flex;
+        min-height: calc(100vh - 80px);
+        background-color: #f8f9fa;
+        margin-top: 80px;
+    }
+    
+    /* Left Sidebar Navigation */
+    .dashboard-sidebar {
+        display: none;
+    }
+    
+    .sidebar-nav {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        padding: 0 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .sidebar-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        color: #495057;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 250ms ease-in-out;
+        cursor: pointer;
+        background-color: #f8f9fa;
+    }
+    
+    .sidebar-nav-item:hover {
+        background-color: #e9ecef;
+        color: #003d33;
+    }
+    
+    .sidebar-nav-item.active {
+        background-color: rgba(0, 61, 51, 0.15);
+        color: #003d33;
+        border: 1px solid #003d33;
+    }
+    
+    .sidebar-nav-item i {
+        width: 16px;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+    
+    .sidebar-section-title {
+        display: none;
+    }
+    
+    /* Main Content Area */
+    .dashboard-main {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 280px;
+        padding: 2rem;
+        overflow-y: auto;
+    }
+    
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #212529;
+    }
+    
+    .dashboard-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .dashboard-actions .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 250ms ease-in-out;
+    }
+    
+    /* Tabs Navigation */
+    .dashboard-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e9ecef;
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-tab {
+        padding: 1rem 1.5rem;
+        color: #6c757d;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        transition: all 250ms ease-in-out;
+        position: relative;
+        bottom: -2px;
+    }
+    
+    .dashboard-tab:hover {
+        color: #003d33;
+    }
+    
+    .dashboard-tab.active {
+        color: #003d33;
+        border-bottom-color: #003d33;
+    }
+    
+    /* Content Grid */
+    .dashboard-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 1400px) {
+        .dashboard-content {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+    }
+    
+    @media (max-width: 1024px) {
+        .dashboard-content {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-content {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .dashboard-content {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .dashboard-card {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 250ms ease-in-out;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    
+    .dashboard-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: #dee2e6;
+    }
+    
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card-icon.primary {
+        background-color: rgba(0, 61, 51, 0.1);
+        color: #003d33;
+    }
+    
+    .card-icon.success {
+        background-color: rgba(45, 106, 79, 0.1);
+        color: #2d6a4f;
+    }
+    
+    .card-icon.warning {
+        background-color: rgba(212, 165, 116, 0.1);
+        color: #d4a574;
+    }
+    
+    .card-icon.danger {
+        background-color: rgba(164, 22, 26, 0.1);
+        color: #a4161a;
+    }
+    
+    .card-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #003d33;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-description {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    /* Right Utility Rail */
+    .dashboard-rail {
+        width: 280px;
+        background-color: #ffffff;
+        border-left: 1px solid #e9ecef;
+        padding: 2rem 1.5rem;
+        overflow-y: auto;
+        position: fixed;
+        height: calc(100vh - 80px);
+        right: 0;
+        top: 80px;
+    }
+    
+    .rail-section {
+        margin-bottom: 2rem;
+    }
+    
+    .rail-section-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #adb5bd;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .timeline-item {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .timeline-marker {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        border: 2px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #6c757d;
+        flex-shrink: 0;
+        position: relative;
+    }
+    
+    .timeline-marker.completed {
+        background-color: #2d6a4f;
+        border-color: #2d6a4f;
+        color: #ffffff;
+    }
+    
+    .timeline-marker.active {
+        background-color: #003d33;
+        border-color: #003d33;
+        color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(0, 61, 51, 0.1);
+    }
+    
+    .timeline-marker::after {
+        content: '';
+        position: absolute;
+        width: 2px;
+        height: 24px;
+        background-color: #dee2e6;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .timeline-item:last-child .timeline-marker::after {
+        display: none;
+    }
+    
+    .timeline-content {
+        flex: 1;
+        padding-top: 0.25rem;
+    }
+    
+    .timeline-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-description {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .stats-widget {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .stats-widget-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #003d33;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stats-widget-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1400px) {
+        .dashboard-rail {
+            width: 240px;
+            padding: 1.5rem 1rem;
+        }
+        
+        .dashboard-main {
+            margin-right: 240px;
+        }
+    }
+    
+    @media (max-width: 1024px) {
+        .dashboard-sidebar {
+            width: 200px;
+        }
+        
+        .dashboard-main {
+            margin-left: 200px;
+            margin-right: 0;
+            padding: 1.5rem;
+        }
+        
+        .dashboard-rail {
+            display: none;
+        }
+        
+        .dashboard-content {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-container {
+            flex-direction: column;
+        }
+        
+        .dashboard-sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            top: 0;
+            border-right: none;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 0;
+        }
+        
+        .sidebar-nav {
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 0 1rem;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-nav-item {
+            flex: 0 1 auto;
+            padding: 0.5rem 1rem;
+        }
+        
+        .sidebar-section-title {
+            display: none;
+        }
+        
+        .dashboard-main {
+            margin-left: 0;
+            margin-right: 0;
+            padding: 1rem;
+        }
+        
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-actions {
+            width: 100%;
+        }
+        
+        .dashboard-actions .btn {
+            flex: 1;
+        }
+        
+        .dashboard-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-tabs {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .dashboard-main {
+            padding: 1rem 0.75rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 1.25rem;
+        }
+        
+        .dashboard-tab {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .dashboard-card {
+            padding: 1rem;
+        }
+        
+        .card-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Left Sidebar Navigation -->
+    <aside class="dashboard-sidebar">
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">Main</div>
+            <a href="#" class="sidebar-nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-file-alt"></i>
+                <span>Claims</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Analytics</span>
+            </a>
+            
+            <div class="sidebar-section-title">Tools</div>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-search"></i>
+                <span>Search</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="#" class="sidebar-nav-item">
+                <i class="fas fa-question-circle"></i>
+                <span>Help</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <!-- Main Content Area -->
+    <main class="dashboard-main">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <div class="dashboard-actions">
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>New Claim
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="dashboard-tabs">
+            <a href="#" class="dashboard-tab active">Overview</a>
+            <a href="#" class="dashboard-tab">Recent Activity</a>
+            <a href="#" class="dashboard-tab">Reports</a>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="dashboard-content">
+            <!-- Card 1 -->
+            <div class="dashboard-card">
+                <div class="card-icon primary">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div class="card-title">Total Claims</div>
+                <div class="card-value">1,247</div>
+                <div class="card-description">+12% from last month</div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="dashboard-card">
+                <div class="card-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="card-title">Approved</div>
+                <div class="card-value">892</div>
+                <div class="card-description">71.5% approval rate</div>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="dashboard-card">
+                <div class="card-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="card-title">Under Review</div>
+                <div class="card-value">245</div>
+                <div class="card-description">Pending verification</div>
+            </div>
+            
+            <!-- Card 4 -->
+            <div class="dashboard-card">
+                <div class="card-icon danger">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="card-title">Rejected</div>
+                <div class="card-value">110</div>
+                <div class="card-description">8.8% rejection rate</div>
+            </div>
+            
+            <!-- Card 5 -->
+            <div class="dashboard-card">
+                <div class="card-icon primary">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="card-title">Fraud Detected</div>
+                <div class="card-value">23</div>
+                <div class="card-description">1.8% fraud rate</div>
+            </div>
+            
+            <!-- Card 6 -->
+            <div class="dashboard-card">
+                <div class="card-icon success">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="card-title">Avg Processing</div>
+                <div class="card-value">2.3h</div>
+                <div class="card-description">Per claim</div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Right Utility Rail -->
+    <aside class="dashboard-rail">
+        <!-- Progress Timeline -->
+        <div class="rail-section">
+            <div class="rail-section-title">Progress Timeline</div>
+            <div class="progress-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker completed">✓</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Claim Submitted</div>
+                        <div class="timeline-description">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker completed">✓</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Documents Verified</div>
+                        <div class="timeline-description">1 hour ago</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker active">2</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">AI Analysis</div>
+                        <div class="timeline-description">In progress</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">3</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Officer Review</div>
+                        <div class="timeline-description">Pending</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">4</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Final Decision</div>
+                        <div class="timeline-description">Pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="rail-section">
+            <div class="rail-section-title">Quick Stats</div>
+            <div class="stats-widget">
+                <div class="stats-widget-value">99.8%</div>
+                <div class="stats-widget-label">Accuracy Rate</div>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}
