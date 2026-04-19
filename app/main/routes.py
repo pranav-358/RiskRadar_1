@@ -267,3 +267,15 @@ def dashboard_corporate():
 def explore_corporate():
     """Corporate explore page - Three-column layout with resources and filters"""
     return render_template('explore_corporate.html')
+
+# ===== LEGAL PAGES =====
+
+@main_bp.route('/terms-of-service')
+def terms_of_service():
+    """Terms of Service page"""
+    return render_template('terms_of_service.html')
+
+@main_bp.route('/privacy-policy')
+def privacy_policy():
+    """Privacy Policy page"""
+    return render_template('privacy_policy.html')

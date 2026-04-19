@@ -697,6 +697,33 @@
     }
 </style>
 
+<script>
+    // Google OAuth Handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        
+        if (googleLoginBtn) {
+            googleLoginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                const originalHTML = googleLoginBtn.innerHTML;
+                googleLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Connecting...';
+                googleLoginBtn.disabled = true;
+                
+                // Redirect to Google OAuth endpoint
+                // In production, this would be: window.location.href = '/auth/google';
+                // For now, show a message
+                setTimeout(() => {
+                    alert('Google OAuth integration coming soon!\n\nFor now, please use the traditional login form with your username and password.');
+                    googleLoginBtn.innerHTML = originalHTML;
+                    googleLoginBtn.disabled = false;
+                }, 1000);
+            });
+        }
+    });
+</script>
+
 <div class="login-container">
     <!-- Left Side - Form -->
     <div class="login-form-section">
@@ -771,11 +798,11 @@
 
             <!-- Social Buttons -->
             <div class="login-social-buttons">
-                <button type="button" class="login-social-btn">
+                <button type="button" class="login-social-btn" id="googleLoginBtn">
                     <i class="fab fa-google"></i>
                     Continue with Google
                 </button>
-                <button type="button" class="login-social-btn">
+                <button type="button" class="login-social-btn" disabled style="opacity: 0.6; cursor: not-allowed;">
                     <i class="fab fa-apple"></i>
                     Continue with Apple
                 </button>
@@ -803,7 +830,7 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="login-testimonial-info">
-                    <div class="login-testimonial-name">Michael Carter</div>
+                    <div class="login-testimonial-name">Pranav Tayade</div>
                     <div class="login-testimonial-role">Insurance Officer at CoreInsure</div>
                 </div>
             </div>
