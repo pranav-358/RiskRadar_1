@@ -12,6 +12,10 @@ license: mit
 
 An intelligent insurance claim fraud detection system powered by 5 AI layers, achieving 99.8% detection accuracy.
 
+## 🌐 Live Demo
+
+**Access the live application here**: https://pranav358it-riskradar.hf.space
+
 ## 🚀 Features
 
 - **5 AI Layers**: Document Verification, Behavioral Analysis, Hidden Link Detection, Predictive Scoring, Explainable AI
