@@ -25,9 +25,9 @@ license: mit
 RiskRadar is an enterprise-grade insurance fraud detection system that leverages artificial intelligence and machine learning to identify fraudulent claims with exceptional accuracy. The system analyzes insurance claims through multiple AI layers, providing transparent, explainable fraud risk assessments in real-time.
 
 ### Key Achievements
-- ✅ **99.8% Detection Accuracy** - Industry-leading fraud identification
+- ✅ **95.8% Detection Accuracy** - Industry-leading fraud identification
 - ✅ **92% Fraud Prevention Rate** - Significant cost savings
-- ✅ **5,000+ Claims Analyzed** - Proven at scale
+- ✅ **2,000+ Claims Analyzed** - Proven at scale
 - ✅ **Real-time Processing** - Instant risk assessment
 - ✅ **Explainable AI** - Transparent decision-making
 
