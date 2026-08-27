@@ -305,7 +305,7 @@ RiskRadar is built with cutting-edge AI technology to help insurance companies c
 
 <div align="center">
 
-**Made with ❤️ for Insurance Industry**
+**Made for Insurance Industry**
 
 [⭐ Star this repository](#) | [🐛 Report Issues](#) | [💡 Suggest Features](#)
 
